@@ -9,7 +9,7 @@ cd "$(cd "$(dirname "$0")/.." && pwd)"
 # environment without the deps (e.g. unactivated conda base).
 pick_python() {
   local c
-  for c in "$PYTHON" "./venv/bin/python" "./.venv/bin/python" "python" "python3"; do
+  for c in "${PYTHON:-}" "./venv/bin/python" "./.venv/bin/python" "python" "python3"; do
     [ -n "$c" ] || continue
     if "$c" -c "import numpy, pytest" >/dev/null 2>&1; then
       printf '%s' "$c"
