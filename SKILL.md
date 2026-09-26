@@ -42,6 +42,12 @@ Skeletons: `references/templates.md`. Ladder details and tolerances:
    **Deep-read only that section**; skim the rest by headings — this is the main token-cost
    control (full-text skims capped at 2).
 3. Run the applicability precheck here for systems/dataset papers (see below).
+   **Embodied-AI papers** (robot manipulation / locomotion / VLA / policy learning /
+   model-based control / sim benchmarks) use the dedicated precheck:
+   `references/embodied_precheck.md` — decision tree (Q1 does a math piece exist →
+   Q2 five classes of testable math → Q3/Q4 resource dependencies) and produce the
+   three-tier feasibility verdict in the METHOD_CARD header:
+   ✅ REPRODUCIBLE-MATH / 🟡 PARTIAL / ❌ NOT-REPRODUCIBLE-HERE.
 
 ### S1 Method extraction → METHOD_CARD.md
 - Symbol table: every symbol, its meaning, and its source equation number;
@@ -61,7 +67,10 @@ Map every claim to a test type (one table):
 - cannot be decided → GAP_LIST, stating what is missing.
 **Applicability precheck**: for systems papers, test only the testable math pieces
 (scheduling formulas, cost models) and route the rest to GAP_LIST; for dataset papers, test
-only the statistical protocol. Honest boundaries are the core value of this skill.
+only the statistical protocol; for **embodied papers**, follow
+`references/embodied_precheck.md` and emit the three-tier feasibility verdict
+(✅ REPRODUCIBLE-MATH / 🟡 PARTIAL / ❌ NOT-REPRODUCIBLE-HERE).
+Honest boundaries are the core value of this skill.
 
 ### S3 Minimal implementation
 Hard constraints (violating any one means redo):

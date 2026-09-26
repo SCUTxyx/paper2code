@@ -3,7 +3,7 @@
 [![CI](https://github.com/SCUTxyx/paper2code/actions/workflows/ci.yml/badge.svg)](https://github.com/SCUTxyx/paper2code/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
-[![Tests](https://img.shields.io/badge/tests-128%20passed-brightgreen.svg)](#quick-start--5-minutes-no-new-dependencies)
+[![Tests](https://img.shields.io/badge/tests-151%20passed-brightgreen.svg)](#quick-start--5-minutes-no-new-dependencies)
 
 > Turn "reproducing the core method of a paper" into a standard, *verified* action with honest boundaries.
 > **Principle: verify the math, don't run the training.**
@@ -49,7 +49,7 @@ Every repro is self-contained and runs on its own, e.g.
 git clone https://github.com/SCUTxyx/paper2code.git
 cd paper2code
 pip install -e .                # installs numpy + pytest (skip if already available)
-python -m pytest -q             # 128 tests: calibration 5/5 + six repros + tooling + meta-tests
+python -m pytest -q             # 151 tests: calibration 5/5 + eight repros (incl. embodied) + tooling + meta-tests
 ```
 
 To install as an agent skill, run `bash scripts/install_skill.sh` — it auto-detects your
@@ -118,6 +118,15 @@ Every reproduction has a fixed seven-part contract (7 parts, 11 files):
   β·logZ term in Eq.(5) cancels in pairwise differences but is *required* for pointwise
   reward recovery (verified by a counterexample).
 - **[FlashAttention tiled softmax](examples/2205.14135-flashattention/)** (arXiv:2205.14135) — 12 tests green.
+- **[Diffusion Policy action-diffusion core](examples/2303.04137-diffusion-policy/)** (arXiv:2303.04137) — 12 tests green. 🟡 PARTIAL.
+  The DDPM action head + DDIM inference chain verified exactly (perfect-ε trajectory
+  invariance, 1e-10); receding-horizon execution semantics pinned by a hand-literal
+  stitching case. Real-robot success rates honestly in GAP_LIST.
+- **[iLQR torque-limited pendulum](examples/ilqr-pendulum/)** — 11 tests green. ✅ REPRODUCIBLE-MATH.
+  Finding: the naive forward-clamp variant leaves O(1) true-gradient residuals at
+  saturated controls (measured, bounded by tests) — tight constrained optimality needs
+  Tassa's box-aware QP backward pass. Plus a zero-dependency oracle: iLQR must reproduce
+  the 1-step LQR closed form to 1e-9.
   Finding: our first "normalized-at-every-step" transliteration of Algorithm 1 rescaled the
   accumulator by e^{Δm} but forgot the l_old factor — mixing a normalized quantity with an
   unnormalized one. The F1 exactness test (tiled == direct, 1e-12) caught it immediately.
@@ -147,13 +156,32 @@ Every reproduction has a fixed seven-part contract (7 parts, 11 files):
 | examples/RMSNorm | scale "invariance" is exact only at ε=0 (ε breaks homogeneity); checker truncation ~1/r³ at small scales — promoted to the numeric spec | SKILL.md end-to-end dry run |
 | tests/test_gradcheck | Central-difference error floor ~1e-10 (O(1) values) → ~1e-8 (mixed-scale vectors) | negative self-tests |
 | mutation audit | 3 classic bugs injected (Adam ε-placement, LoRA α·r, RoPE off-by-one) — all killed; kill map documented | [calibration/README.md](calibration/README.md) |
+| examples/Diffusion Policy | "DP uses temporal ensembling" is a misattribution — that is ACT's mechanism; DP commits receding-horizon | primary-source check (ar5iv, 2026-09-26) |
+| examples/iLQR | Forward-clamp iLQR leaves O(1) true-gradient residuals at saturated controls — measured, bounded, documented | exact-adjoint property test |
 
 ## Success criteria (PLAN §9), checked
 
 1. ✅ Calibration 5/5 green, rerun after every SKILL.md change (CALIBRATION_LOG.md);
-2. ✅ Real-paper repros complete, readable, re-runnable (six under examples/);
-3. ✅ External users zero-config: CI proves a clean machine goes clone → `pip install -e .` → 128 green in under a minute, zero new dependencies;
+2. ✅ Real-paper repros complete, readable, re-runnable (eight under examples/, incl. embodied);
+3. ✅ External users zero-config: CI proves a clean machine goes clone → `pip install -e .` → 151 green in under a minute, zero new dependencies;
 4. ✅ Multiple genuine findings in real papers (table above) — the verification step has real value beyond "running the pipeline".
+
+## Embodied papers: feasibility verdict + math-core verification
+
+Embodied AI papers (robot manipulation, VLA, policy learning, model-based control) are
+where "can this be reproduced?" is hardest to answer. paper2code answers it with a
+dedicated precheck ([references/embodied_precheck.md](references/embodied_precheck.md)):
+a decision tree over five classes of testable math (generative action heads, temporal
+chunking/aggregation, model-based control, geometry, estimation), and a three-tier
+verdict written into every METHOD_CARD:
+
+- **✅ REPRODUCIBLE-MATH** — the full contribution is verifiable on CPU;
+- **🟡 PARTIAL** — the math core is verified; empirical claims honestly routed to GAP_LIST;
+- **❌ NOT-REPRODUCIBLE-HERE** — no testable math piece; a 1-page WHY-NOT report instead.
+
+All "paper X uses Y" statements are verified against the primary source — the first
+embodied run caught a misattribution before it shipped (temporal ensembling is ACT's
+mechanism, not Diffusion Policy's).
 
 ## Cost
 

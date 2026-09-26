@@ -214,4 +214,11 @@ paper2code/
 ```
 
 里程碑状态:M0–M3 全部完成(§9 四条成功标准全部达成,见 README 对照表)。
-当前测试总计 128(含元测试),CI 覆盖 Python 3.10/3.12。
+当前测试总计 151(含元测试),CI 覆盖 Python 3.10/3.12。
+
+**v0.3 之后新增:具身论文可行性预检**(references/embodied_precheck.md)——决策树 +
+五类可测数学件 + 三档判定(✅ REPRODUCIBLE-MATH / 🟡 PARTIAL / ❌ NOT-REPRODUCIBLE-HERE),
+METHOD_CARD 模板增加 FEASIBILITY 区块;examples/ 增至 8 篇,新增具身两篇:
+Diffusion Policy 动作扩散核(🟡 PARTIAL,12 测试)与 iLQR 摆起(✅,11 测试)。
+S1 阶段新增硬性要求:凡"论文 X 用了 Y"的陈述必须对照 ar5iv 原文核实
+(首个具身预检即纠正了一处社区普遍的机制张冠李戴)。

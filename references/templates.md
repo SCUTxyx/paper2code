@@ -28,6 +28,12 @@ repros/<arxiv-id>-<short-name>/
 - Scope statement: this card covers only the "core method section"; everything else is
   explicitly declared out of scope.
 
+## FEASIBILITY (embodied papers only; see references/embodied_precheck.md)
+- Verdict: ✅ REPRODUCIBLE-MATH / 🟡 PARTIAL / ❌ NOT-REPRODUCIBLE-HERE
+- Verifiable here: <math pieces, one line each>
+- Not verifiable here: <weights / real robot / datasets / training>
+- What is missing: <the concrete resource>
+
 ## Problem formalization
 <input / output / objective, two or three sentences>
 
