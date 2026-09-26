@@ -4,10 +4,26 @@
 set -u
 cd "$(cd "$(dirname "$0")/.." && pwd)"
 
-# honor $PYTHON; else prefer python, fall back to python3 (stock macOS has no `python`)
-PY="${PYTHON:-}"
-[ -z "$PY" ] && PY="$(command -v python || command -v python3)"
-[ -z "$PY" ] && { echo "no python/python3 on PATH"; exit 2; }
+# Interpreter selection: honor $PYTHON; else pick the first candidate that can
+# actually import numpy+pytest (the repo's deps) — `python` on PATH may be an
+# environment without the deps (e.g. unactivated conda base).
+pick_python() {
+  local c
+  for c in "$PYTHON" "./venv/bin/python" "./.venv/bin/python" "python" "python3"; do
+    [ -n "$c" ] || continue
+    if "$c" -c "import numpy, pytest" >/dev/null 2>&1; then
+      printf '%s' "$c"
+      return 0
+    fi
+  done
+  return 1
+}
+if ! PY="$(pick_python)"; then
+  echo "no interpreter with numpy+pytest found." \
+       "Run 'pip install -e .' in your environment first (and activate it),"
+  echo "or point PYTHON=<python> at it explicitly."
+  exit 2
+fi
 rc=0
 
 echo "=== calibration set ==="
