@@ -182,3 +182,36 @@ paper2code/
 2. M2 的两篇实战报告产物完整、可读、可复跑;
 3. 外部用户零配置跑通(≤ 5 分钟,零新依赖);
 4. 至少一次在真实论文中发现值得写进报告的「实现注意点/论文疑点」——证明验证环节有真实价值,而不只是跑通流程。
+
+---
+
+## 附录:v0.2 落地现状(2026-09-26)
+
+规划(§6)与实际仓库的对账——在规划骨架上新增/演化了以下内容,其余与规划一致:
+
+```
+paper2code/
+├── SKILL.md              # skill 本体(规划即有,M3 打磨为英文+中文触发词)
+├── README.md             # 门面:五篇示例 + 发现汇总表 + 成功标准对照
+├── CONTRIBUTING.md       # 贡献指南(新增)
+├── CITATION.cff          # 引用文件(新增)
+├── LICENSE               # MIT
+├── pyproject.toml        # 依赖 + pytest 配置单一来源(替代 requirements/pytest.ini)
+├── conftest.py           # 测试路径装配
+├── references/           # 验证阶梯细则、数值规范、产物模板(英文)
+├── scripts/
+│   ├── gradcheck.py      # 通用有限差分工具(含误差地板分析)
+│   ├── run_calibration.sh# skill 回归(退出码门禁)
+│   ├── run_all_tests.sh  # 全量测试
+│   └── install_skill.sh  # skill 安装器(新增)
+├── tests/                # 元测试(新增): EQ_MAP 行号校验、REPORT 计数对账、
+│                         #   产物契约完整性、gradcheck 自测
+├── calibration/          # 5 篇考卷(Adam/Attention/Kalman/DDPM/InfoNCE),47 测试
+├── examples/             # 5 篇实战(RoPE/DPO/FlashAttention/AdamW/LoRA),55 测试
+├── repros/               # 用户本地运行区(.gitignore)
+├── CALIBRATION_LOG.md
+└── PLAN.md               # 本文档
+```
+
+里程碑状态:M0–M3 全部完成(§9 四条成功标准全部达成,见 README 对照表)。
+当前测试总计 114(含元测试),CI 覆盖 Python 3.10/3.12。

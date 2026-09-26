@@ -26,26 +26,37 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-# Known skill roots (first existing one wins; ~/.zcode/skills is created if none exist)
-CANDIDATES="$HOME/.zcode/skills $HOME/.claude/skills $HOME/.codex/skills $HOME/.agents/skills"
+# Known skill roots, one per line (newline-safe with paths containing spaces).
+# The first existing one wins; ~/.zcode/skills is created if none exists.
+CANDIDATES="$HOME/.zcode/skills
+$HOME/.claude/skills
+$HOME/.codex/skills
+$HOME/.agents/skills"
+
 DETECTED=""
-for d in $CANDIDATES; do
-  if [ -d "$d" ]; then DETECTED="$DETECTED $d"; fi
-done
+while IFS= read -r d; do
+  [ -n "$d" ] && [ -d "$d" ] && DETECTED="${DETECTED}${d}
+"
+done <<EOF
+$CANDIDATES
+EOF
 
 if [ "$ACTION" = "list" ]; then
   echo "Detected skill roots:"
-  for d in $DETECTED; do
+  while IFS= read -r d; do
+    [ -n "$d" ] || continue
     if [ -e "$d/paper2code/SKILL.md" ]; then state="installed"; else state="-"; fi
     echo "  $d  [$state]"
-  done
+  done <<EOF
+$DETECTED
+EOF
   [ -z "$DETECTED" ] && echo "  (none found; install will create ~/.zcode/skills)"
   exit 0
 fi
 
 if [ -z "$TARGET_DIR" ]; then
   if [ -n "$DETECTED" ]; then
-    TARGET_DIR=$(echo $DETECTED | awk '{print $1}')
+    TARGET_DIR="$(printf '%s' "$DETECTED" | grep -m1 '^/')"
   else
     TARGET_DIR="$HOME/.zcode/skills"
     echo "no skill directory found; creating $TARGET_DIR"

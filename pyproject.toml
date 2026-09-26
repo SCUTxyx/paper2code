@@ -1,6 +1,6 @@
 [project]
 name = "paper2code"
-version = "0.1.0"
+version = "0.2.0"
 description = "Verified paper reproduction as an agent skill: numpy minimal implementations with green property/gradient tests, method cards, and honest gap lists."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -9,6 +9,14 @@ dependencies = [
     "numpy>=1.24",
     "pytest>=7",
 ]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+keywords = ["reproducibility", "papers", "verification", "agent-skills", "numpy"]
 
 [tool.setuptools]
 # The repo is scripts + tests + markdown artifacts; nothing is importable as a package.

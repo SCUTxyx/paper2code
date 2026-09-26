@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+title: paper2code — verified paper reproduction as an agent skill
+message: >-
+  If you use paper2code in your research or teaching, please cite the repository.
+authors:
+  - family-names: Xue
+    given-names: Yuxuan
+    alias: SCUTxyx
+    website: "https://github.com/SCUTxyx"
+version: v0.2
+date-released: "2026-09-26"
+license: MIT
+repository-code: "https://github.com/SCUTxyx/paper2code"
+abstract: >-
+  paper2code turns "reproduce the core method of a paper" into a standard, verified
+  action: a numpy minimal implementation, green gradient/property tests against the
+  paper's own mathematical claims, a method card, a formula-to-code map, and an honest
+  gap list. Delivered as an agent skill; verification is CPU-only and dependency-free.
+keywords:
+  - reproducibility
+  - machine learning
+  - verification
+  - agent skills

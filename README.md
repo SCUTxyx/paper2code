@@ -1,6 +1,9 @@
 # paper2code
 
 [![CI](https://github.com/SCUTxyx/paper2code/actions/workflows/ci.yml/badge.svg)](https://github.com/SCUTxyx/paper2code/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![Tests](https://img.shields.io/badge/tests-114%20passed-brightgreen.svg)](#quick-start--5-minutes-no-new-dependencies)
 
 > Turn "reproducing the core method of a paper" into a standard, *verified* action with honest boundaries.
 > **Principle: verify the math, don't run the training.**
@@ -22,13 +25,31 @@ paper2code = **verifiable** (properties + gradients + cross-checks + anchors) + 
 boundaries** (gap lists) + **agent-native** (SKILL.md, fully automated) + **zero heavy
 dependencies** (numpy-only).
 
+## How a reproduction runs
+
+```
+arXiv paper
+   │  S0 acquire & parse (ar5iv HTML; deep-read the method section only)
+   ▼
+S1 METHOD_CARD ──► S2 TEST_PLAN ──► S3 impl/ (two independent formulations)
+       (claims)      (claim→test map)        │
+                                             ▼
+                          S4 pytest: L1 cross-check · L2 properties · L3 anchors
+                                             │
+                                             ▼
+              S5 REPORT / GAP_LIST / EQ_MAP ◄─ human review (final judgment)
+```
+
+Every repro is self-contained and runs on its own, e.g.
+`python -m pytest examples/2106.09685-lora/tests -q`.
+
 ## Quick start (≤ 5 minutes, no new dependencies)
 
 ```bash
 git clone https://github.com/SCUTxyx/paper2code.git
 cd paper2code
 pip install -e .                # installs numpy + pytest (skip if already available)
-python -m pytest -q             # 107 tests: calibration 5/5 + five example repros + tooling
+python -m pytest -q             # 114 tests: calibration 5/5 + five repros + tooling + meta-tests
 ```
 
 To install as an agent skill, run `bash scripts/install_skill.sh` — it auto-detects your
@@ -129,7 +150,7 @@ Every reproduction has a fixed seven-file contract:
 
 1. ✅ Calibration 5/5 green, rerun after every SKILL.md change (CALIBRATION_LOG.md);
 2. ✅ Real-paper repros complete, readable, re-runnable (five under examples/);
-3. ✅ External users zero-config: CI proves a clean machine goes clone → `pip install -e .` → 107 green in under a minute, zero new dependencies;
+3. ✅ External users zero-config: CI proves a clean machine goes clone → `pip install -e .` → 114 green in under a minute, zero new dependencies;
 4. ✅ Multiple genuine findings in real papers (table above) — the verification step has real value beyond "running the pipeline".
 
 ## Cost
@@ -159,9 +180,9 @@ PLAN.md               # project plan (overview/contract/methodology/verification
 ## Terms
 
 - Code and reports only — no paper PDFs (arXiv links cited); MIT licensed.
-- Contributions welcome via the templates in `references/templates.md`: one PR = one
-  paper's seven-file contract + green tests. Papers with suspected typos or failing
-  claims are *especially* welcome — those are this repo's most valuable artifacts.
+- Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md): one PR = one paper's
+  seven-file contract + green tests + calibration gate. Papers with suspected typos or
+  failing claims are *especially* welcome — those are this repo's most valuable artifacts.
 
 Methodology details: [PLAN.md](PLAN.md) · [SKILL.md](SKILL.md) ·
 [references/verification.md](references/verification.md)

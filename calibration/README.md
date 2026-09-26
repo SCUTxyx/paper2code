@@ -10,7 +10,7 @@ shared scripts, rerun `bash scripts/run_calibration.sh`; results are appended to
 | 02_attention | Attention (Vaswani 2017) | Softmax rows sum to 1; causal mask zero future dependency; 1/√d scaling | Properties + dual implementation + sigmoid-identity anchor |
 | 03_kalman | Kalman Filter (1960) | Static linear-Gaussian: recursion = batch least squares | `np.linalg.lstsq` (zero extra dependencies) |
 | 04_ddpm | DDPM (Ho et al. 2020) | Closed-form marginal q(x_t\|x₀) vs iterative noising Monte Carlo | Closed form vs Monte Carlo |
-| 05_infnce | InfoNCE / CLIP | Tower-swap symmetry; temperature-limit degeneracy; permutation/scale invariance | Properties + degeneracy + hand-computed anchor |
+| 05_infonce | InfoNCE / CLIP | Tower-swap symmetry; temperature-limit degeneracy; permutation/scale invariance | Properties + degeneracy + hand-computed anchor |
 
 ## Composition of each exam
 
