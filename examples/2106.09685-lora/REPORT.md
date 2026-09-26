@@ -12,7 +12,7 @@ tables, multi-adapter serving, and quantized-base variants (QLoRA) are out of sc
 | Test file | Cases | Pass | Fail | Notes |
 |---|---|---|---|---|
 | test_properties.py | 4 | 4 | 0 | L1 init exactness (bit-for-bit); L2 gradient asymmetry with EXACT zeros (+swapped-init control); L3 rank spectrum truncated at r; L6 both-zero fixed point demonstrated over 20 SGD steps |
-| test_anchor.py | 3 | 3 | 0 | integer hand case h=[6.5, 9.0], α/r=2 variant, merge/unmerge exact |
+| test_anchor.py | 4 | 4 | 0 | integer hand case h=[6.5, 9.0], α/r=2 variant, merge/unmerge exact; r=2 scale discriminator (α/r vs α·r) |
 | test_gradients.py | 3 | 3 | 0 | outer-product grads rtol 1e-6 (ΔW path), 5e-4 (streaming path — small-component floor, see finding 3); grad_A ≡ 0 at init matched by central differences |
 | test_crosscheck.py | 2 | 2 | 0 | ΔW-formed vs streaming forward 1e-12; merged weight produces identical outputs; unmerge exact |
 

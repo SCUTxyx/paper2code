@@ -47,3 +47,18 @@ def test_merge_hand_case():
     # unmerge recovers the frozen base exactly
     W0_back = core_pseudo.unmerge(W, B, A, alpha=1.0)
     assert np.all(W0_back == W0)
+
+
+def test_scale_discrimination_with_r_greater_than_one():
+    """Mutation-audit anchor: the paper's scaling is (α/r) — with r=1 the readings
+    α/r and α·r coincide, so a real discriminator needs r>1.
+    B=[[1,2],[3,4]], A=[[5,6],[7,8]], α=1, r=2 → scale 0.5:
+      BA = [[19,22],[43,50]] → ΔW = [[9.5,11],[21.5,25]]  (α·r would give ×2)"""
+    B = np.array([[1.0, 2.0], [3.0, 4.0]])
+    A = np.array([[5.0, 6.0], [7.0, 8.0]])
+    W0 = np.zeros((2, 2))
+    _, delta_W = core_eq.lora_forward_eq(W0, B, A, np.ones(2), alpha=1.0)
+    assert np.all(delta_W == [[9.5, 11.0], [21.5, 25.0]])
+    # α=2 with r=2 → scale 1: ΔW must be exactly BA
+    _, delta_W2 = core_eq.lora_forward_eq(W0, B, A, np.ones(2), alpha=2.0)
+    assert np.all(delta_W2 == [[19.0, 22.0], [43.0, 50.0]])

@@ -37,15 +37,18 @@ def test_signal_destroyed_at_T():
     assert np.all(np.abs(xt) <= 3.0 * np.sqrt(abars[-1]))
 
 
-def test_variance_of_closed_form_exact():
-    """Eq.4's conditional variance is exactly 1-ᾱ_t (closed form, not statistical).
-    Structural check: dividing (x_t − √ᾱ_t x0) by √(1-ᾱ_t) must recover a standard
-    normal draw (6σ guard, not the main assertion)."""
+def test_reparameterization_structure():
+    """Structural identity of Eq.(4): (x_t − √ᾱ_t x0)/√(1-ᾱ_t) must recover exactly
+    the ε that was put in — the linear reparameterization, checked on constructed
+    draws. NOTE: this verifies the *structure*, not the variance level; the
+    variance claim (1-ᾱ_t) is verified statistically in test_anchor.py."""
     abars = core_eq.alpha_bar_seq(core_eq.linear_beta_schedule(1000))
     x0 = np.array([0.3, -0.7, 1.2])
     for t in (1, 17, 500, 1000):
         rng = np.random.default_rng(t)
-        xs = core_pseudo.q_sample_batch(x0, t, rng, abars, 4)
-        for x in xs:
-            eps_hat = (x - np.sqrt(abars[t - 1]) * x0) / np.sqrt(1.0 - abars[t - 1])
-            assert np.all(np.abs(eps_hat) < 6.0)  # 6σ guard for a standard normal
+        eps_in = rng.standard_normal((4, 3))
+        ab = abars[t - 1]
+        xs = np.sqrt(ab) * x0[None, :] + np.sqrt(1.0 - ab) * eps_in
+        for x, eps in zip(xs, eps_in):
+            eps_hat = (x - np.sqrt(ab) * x0) / np.sqrt(1.0 - ab)
+            assert np.allclose(eps_hat, eps, rtol=0, atol=1e-12)

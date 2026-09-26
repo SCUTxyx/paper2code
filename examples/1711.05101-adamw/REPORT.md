@@ -11,7 +11,7 @@ hyperparameter-transfer grid are empirical matters → GAP_LIST.
 | Test file | Cases | Pass | Fail | Notes |
 |---|---|---|---|---|
 | test_properties.py | 2 | 2 | 0 | W1: moment trajectories identical for all λ (atol=0); gap follows the closed-form linear recursion (1e-12) |
-| test_anchor.py | 2 | 2 | 0 | two hand-computed steps with decay (θ₂=0.7845818); g=0 geometric shrink θ_t=θ_0·0.99^t |
+| test_anchor.py | 3 | 3 | 0 | two hand-computed steps with decay (θ₂=0.7845818); g=0 geometric shrink; ε=1 discriminating anchor (wrong ε placements differ 8-26×) |
 | test_gradients.py | 1 | 1 | 0 | ∂θ_T/∂θ_0 = (1−lr·λ)^T exact, closed form vs central differences, two λ values |
 | test_crosscheck.py | 2 | 2 | 0 | fused == decoupled composition (1e-12); λ=0 == hand-rolled Adam (1e-12) |
 

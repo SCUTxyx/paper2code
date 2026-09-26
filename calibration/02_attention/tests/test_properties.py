@@ -43,16 +43,20 @@ def test_causal_mask_zero():
 
 def test_scaling_variance():
     """T3: for q·k ~ N(0, d_k), raw logit std ≈ √d_k; after 1/√d_k scaling ≈ 1.
-    Tolerance derived analytically at 3σ: N = n² samples, std-estimate relative
-    fluctuation ≈ 1/√(2N), loosened to 0.5."""
+    Tolerance derived analytically: n² = 4096 samples give a std-estimate SE of
+    √d_k/√(2N) ≈ 0.088 (raw) and 1/√(2N) ≈ 0.011 (scaled); entries share rows so
+    they are not independent — widen ×4 for dependence, still ≈5σ.
+    This bound genuinely discriminates 1/√d_k (std≈1) from 1/d_k (std≈1/√d_k=0.125)
+    and from no scaling (std≈8)."""
     rng = np.random.default_rng(2)
     n, d_k = 64, 64
     Q = rng.standard_normal((n, d_k))
     K = rng.standard_normal((n, d_k))
     raw = (Q @ K.T).ravel()
     scaled = raw / np.sqrt(d_k)  # Eq.(1)'s scaling
-    assert abs(raw.std() - np.sqrt(d_k)) < 0.5, f"raw std={raw.std():.3f}, expected ≈8"
-    assert abs(scaled.std() - 1.0) < 0.5 / np.sqrt(d_k) * np.sqrt(d_k), (
+    assert abs(raw.std() - np.sqrt(d_k)) < 4 * np.sqrt(d_k) / np.sqrt(2 * n * n), (
+        f"raw std={raw.std():.3f}, expected ≈{np.sqrt(d_k)}")
+    assert abs(scaled.std() - 1.0) < 4 / np.sqrt(2 * n * n), (
         f"scaled std={scaled.std():.3f}, expected ≈1")
 
 

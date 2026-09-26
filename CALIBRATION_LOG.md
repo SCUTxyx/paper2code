@@ -71,3 +71,13 @@
 | 03_kalman | ✅ 7 passed in 0.44s |
 | 04_ddpm | ✅ 10 passed in 0.72s |
 | 05_infonce | ✅ 10 passed in 0.07s |
+
+## 2026-09-26 19:43:08 — ✅ 5/5 all green
+
+| Exam | pytest result |
+|---|---|
+| 01_adam | ✅ 11 passed in 0.06s |
+| 02_attention | ✅ 10 passed in 0.05s |
+| 03_kalman | ✅ 7 passed in 0.42s |
+| 04_ddpm | ✅ 10 passed in 0.71s |
+| 05_infonce | ✅ 10 passed in 0.05s |

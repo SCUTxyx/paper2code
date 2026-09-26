@@ -39,3 +39,16 @@ def test_five_steps_constant_gradient_hand_computed():
     c = np.array([0.7, -0.4])
     out = core_eq.adam_run(np.tile(c, (5, 1)), theta0=np.zeros(2), lr=0.1)
     assert np.allclose(out["thetas"][5], [-0.49999999, 0.49999999], rtol=1e-7)
+
+
+def test_epsilon_placement_is_discriminating():
+    """Mutation-audit anchor: with a LARGE ε the three plausible readings of
+    Algorithm 1's '√v̂ + ε' differ hugely, so the placement is verified exactly:
+      correct  m̂/(√v̂+ε): update = 0.1·1/(1+1) = 0.05      → θ₁ = -0.05
+      wrong    m̂/√(v̂+ε): update = 0.1/√2 ≈ 0.0707         → θ₁ ≈ -0.0707
+      wrong    m̂/√v̂+ε: update = 0.1/1 + 1 = 1.1            → θ₁ = -1.1
+    A single assertion at rtol 1e-9 kills all wrong placements (with the default
+    ε=1e-8 the readings differ by only ~1e-8 and slip under ordinary tolerances —
+    this is the 'self-consistent misreading' the verification ladder warns about)."""
+    out = core_eq.adam_run(np.array([[1.0]]), theta0=np.zeros(1), lr=0.1, eps=1.0)
+    assert np.allclose(out["thetas"][1], -0.05, rtol=1e-9)

@@ -40,3 +40,14 @@ def test_zero_gradient_shrink():
             assert np.allclose(out["thetas"][t], expect, rtol=0, atol=1e-15), f"t={t}"
     # the hand constant: 0.99⁵
     assert abs(0.99 ** 5 - 0.9509900499) < 1e-12
+
+
+def test_epsilon_placement_with_decay():
+    """Mutation-audit anchor (companion to the Adam exam's): with ε=1 the three
+    readings of '√v̂ + ε' separate hugely, AND the decay path must remain additive:
+      correct  θ₁ = 1 − 0.1·(1/(1+1)) − 0.1·0.1·1 = 0.94
+      wrong    m̂/√(v̂+ε) → θ₁ = 1 − 0.1/√2 − 0.01 ≈ 0.9193
+      wrong    m̂/√v̂+ε   → θ₁ = 1 − 0.1 − 0.01 = 0.89 (also breaks A1's spirit)"""
+    out = core_eq.adamw_run(np.array([[1.0]]), theta0=np.ones(1),
+                            lr=0.1, weight_decay=0.1, eps=1.0)
+    assert np.allclose(out["thetas"][1], 0.94, rtol=1e-9)
