@@ -28,7 +28,7 @@ dependencies** (numpy-only).
 git clone https://github.com/SCUTxyx/paper2code.git
 cd paper2code
 pip install -e .                # installs numpy + pytest (skip if already available)
-python -m pytest -q             # 88 tests: calibration 5/5 + three example repros + tooling
+python -m pytest -q             # 107 tests: calibration 5/5 + five example repros + tooling
 ```
 
 To install as an agent skill, run `bash scripts/install_skill.sh` — it auto-detects your
@@ -103,6 +103,34 @@ Every reproduction has a fixed seven-file contract:
   A self-consistent error class that shape checks and soft property tests would have passed.
   Gap #1-2: the paper's headline IO-complexity and speedup claims are systems-level and
   honestly untestable on CPU → GAP_LIST.
+- **[AdamW decoupled weight decay](examples/1711.05101-adamw/)** (arXiv:1711.05101) — 7 tests green.
+  Finding: because Adam's adaptive step is gradient-only, the moment trajectories are
+  *identical for every λ* (verified with atol=0) — a property test that *discriminates*
+  decoupled from coupled designs, which loss curves cannot. Also documented: the gradient
+  w.r.t. g is O(ε) and deliberately not used as a test target.
+- **[LoRA low-rank adaptation](examples/2106.09685-lora/)** (arXiv:2106.09685) — 12 tests green.
+  Findings: the init gradient asymmetry is structural — ∂L/∂A ≡ 0 *exactly* at B=0
+  (training starts by moving B only); zeroing BOTH factors is a training fixed point,
+  demonstrated over 20 SGD steps — the classic silent LoRA bug, directly testable.
+  rank(ΔW) = r exactly, and merge/unmerge round-trips bit-for-bit.
+
+## Findings so far (the part that makes this more than a test runner)
+
+| Source | Finding | Caught by |
+|---|---|---|
+| calibration/03 (Kalman) | Textbook (I−KH)P covariance update goes indefinite at diffuse P0=10¹⁰ (catastrophic cancellation); Joseph form fixes it | lstsq anchor vs closed form |
+| calibration/02 (Attention) | "∂L/∂V_j = 0 for future j" is a *wrong property statement* — the correct causal claim is per-row ∂out_i/∂V_j = 0 | TEST_PLAN semantics review |
+| examples/FlashAttention | Algorithm 1 transliteration dropped the l_old rescale factor — self-consistent, properties-green, wrong | F1 exactness test (1e-12) |
+| examples/AdamW | Adaptive step is gradient-only ⇒ moments identical for all λ — a decoupling discriminator | property test (atol=0) |
+| examples/LoRA | Both-zero init is a training fixed point (the classic silent bug); ∂L/∂A ≡ 0 exactly at init | structural property test |
+| tests/test_gradcheck | Central-difference error floor ~1e-10 (O(1) values) → ~1e-8 (mixed-scale vectors) | negative self-tests |
+
+## Success criteria (PLAN §9), checked
+
+1. ✅ Calibration 5/5 green, rerun after every SKILL.md change (CALIBRATION_LOG.md);
+2. ✅ Real-paper repros complete, readable, re-runnable (five under examples/);
+3. ✅ External users zero-config: CI proves a clean machine goes clone → `pip install -e .` → 107 green in under a minute, zero new dependencies;
+4. ✅ Multiple genuine findings in real papers (table above) — the verification step has real value beyond "running the pipeline".
 
 ## Cost
 
