@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+.ipynb_checkpoints/
+
+# 用户本地运行区:每次复现的产物留在本地,不进仓库
+repros/
