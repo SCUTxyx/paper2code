@@ -12,7 +12,10 @@
 set -u
 cd "$(cd "$(dirname "$0")/.." && pwd)"
 
-PY="${PYTHON:-python}"
+# honor $PYTHON; else prefer python, fall back to python3 (stock macOS has no `python`)
+PY="${PYTHON:-}"
+[ -z "$PY" ] && PY="$(command -v python || command -v python3)"
+[ -z "$PY" ] && { echo "no python/python3 on PATH"; exit 2; }
 LOG="CALIBRATION_LOG.md"
 passed=0; failed=0; detail_lines=""
 

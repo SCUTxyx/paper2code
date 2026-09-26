@@ -5,8 +5,13 @@ Mathematical basis (hand derivation, METHOD_CARD claim A3):
     m_t = (1-β1) Σ_{k=1..t} β1^{t-k} g_k        (first-moment EMA unrolled)
     v_t = (1-β2) Σ_{k=1..t} β2^{t-k} g_k²
 Bias correction and the update step are identical to the formula version. The
-computation path is entirely different (lower-triangular weighted sums vs state
-recursion) — for the cross-check in test_crosscheck.py.
+computation path is entirely different (explicit per-step weighted accumulation
+vs state recursion) — for the cross-check in test_crosscheck.py.
+
+Implementation note: the accumulation deliberately avoids BLAS matmul — pip-wheel
+numpy's OpenBLAS kernel emits spurious divide-by-zero/overflow FP flags on some
+matmul shapes (results are bit-correct; surfaced by the fresh-clone test). Pure
+numpy elementwise loops are warning-free on every BLAS.
 """
 
 import numpy as np
@@ -16,11 +21,16 @@ def _ema_history(seq, beta):
     """Per-step EMA values computed directly as weighted sums over history, no
     recursion. seq: (T, n) -> (T, n)."""
     s = np.asarray(seq, dtype=np.float64)
-    T = s.shape[0]
-    idx = np.arange(T)
-    # W[t, k] = β^{t-k} (k ≤ t), lower triangular; W @ s gives Σ_k β^{t-k} s_k
-    W = np.tril(beta ** (idx[:, None] - idx[None, :]))
-    return (1.0 - beta) * (W @ s)
+    T, n = s.shape
+    out = np.empty_like(s)
+    for t in range(T):
+        acc = np.zeros(n)
+        decay = 1.0                      # β^{t-k}, k running down from t
+        for k in range(t, -1, -1):
+            acc += decay * s[k]
+            decay *= beta
+        out[t] = (1.0 - beta) * acc
+    return out
 
 
 def adam_run_history(grad_seq, theta0, lr=0.1, beta1=0.9, beta2=0.999, eps=1e-8):

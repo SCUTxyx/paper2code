@@ -91,3 +91,23 @@
 | 03_kalman | ✅ 7 passed in 0.43s |
 | 04_ddpm | ✅ 10 passed in 0.76s |
 | 05_infonce | ✅ 10 passed in 0.06s |
+
+## 2026-09-26 21:03:06 — ❌ 5/5 exam(s) failed
+
+| Exam | pytest result |
+|---|---|
+| 01_adam | ❌ /Library/Developer/CommandLineTools/usr/bin/python3: No module named pytest (exit=1) |
+| 02_attention | ❌ /Library/Developer/CommandLineTools/usr/bin/python3: No module named pytest (exit=1) |
+| 03_kalman | ❌ /Library/Developer/CommandLineTools/usr/bin/python3: No module named pytest (exit=1) |
+| 04_ddpm | ❌ /Library/Developer/CommandLineTools/usr/bin/python3: No module named pytest (exit=1) |
+| 05_infonce | ❌ /Library/Developer/CommandLineTools/usr/bin/python3: No module named pytest (exit=1) |
+
+## 2026-09-26 21:03:56 — ✅ 5/5 all green
+
+| Exam | pytest result |
+|---|---|
+| 01_adam | ✅ 11 passed in 0.11s |
+| 02_attention | ✅ 10 passed in 0.05s |
+| 03_kalman | ✅ 7 passed in 0.43s |
+| 04_ddpm | ✅ 10 passed in 0.71s |
+| 05_infonce | ✅ 10 passed in 0.05s |
