@@ -21,3 +21,23 @@
 | 03_kalman | ✅ 7 passed in 0.43s |
 | 04_ddpm | ✅ 10 passed in 0.73s |
 | 05_infnce | ✅ 10 passed in 0.05s |
+
+## 2026-09-26 16:01:51 — ✅ 5/5 全绿
+
+| 考卷 | pytest 结果 |
+|---|---|
+| 01_adam | ✅ 10 passed in 0.11s |
+| 02_attention | ✅ 10 passed in 0.05s |
+| 03_kalman | ✅ 7 passed in 0.42s |
+| 04_ddpm | ✅ 10 passed in 0.71s |
+| 05_infnce | ✅ 10 passed in 0.06s |
+
+## 2026-09-26 16:09:16 — ✅ 5/5 全绿
+
+| 考卷 | pytest 结果 |
+|---|---|
+| 01_adam | ✅ 10 passed in 0.05s |
+| 02_attention | ✅ 10 passed in 0.05s |
+| 03_kalman | ✅ 7 passed in 0.42s |
+| 04_ddpm | ✅ 10 passed in 0.70s |
+| 05_infnce | ✅ 10 passed in 0.05s |

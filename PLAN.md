@@ -160,7 +160,7 @@ paper2code/
 | token | 50–150K(中高,有上界) | 主要花在精读方法节与写代码;SKILL.md 规定只精读方法节以控成本 |
 | 本地 CPU | < 10 秒 | 小矩阵合成数据测试 |
 | 存储 | 30–100 KB / 篇 | 无数据集、无模型权重、无缓存 |
-| 依赖 | 零新增 | numpy / pytest / matplotlib,conda test 环境已具备 |
+| 依赖 | 零新增 | numpy / pytest(仓库不使用 matplotlib,conda test 环境具备 numpy) |
 
 ---
 
