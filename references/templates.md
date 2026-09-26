@@ -1,4 +1,4 @@
-# Artifact templates (the fixed seven-file contract)
+# Artifact templates (the fixed seven-part contract (7 parts, 11 files))
 
 Every run produces the same fixed structure — this fixedness is the source of the skill's
 reliability. Directory name: `repros/<arxiv-id>-<short-name>/` (e.g. `2104.09864-rope/`).

@@ -105,7 +105,7 @@ formulation of the causal-attention gradient property) are recorded in
 
 ## Example artifacts (real-paper trial runs)
 
-Every reproduction has a fixed seven-file contract:
+Every reproduction has a fixed seven-part contract (7 parts, 11 files):
 `METHOD_CARD / TEST_PLAN / impl (dual implementation) / tests (4 kinds) / REPORT / GAP_LIST / EQ_MAP`.
 
 - **[RoPE rotary position embedding](examples/2104.09864-rope/)** (arXiv:2104.09864) — 13 tests green.
@@ -145,6 +145,8 @@ Every reproduction has a fixed seven-file contract:
 | examples/AdamW | Adaptive step is gradient-only ⇒ moments identical for all λ — a decoupling discriminator | property test (atol=0) |
 | examples/LoRA | Both-zero init is a training fixed point (the classic silent bug); ∂L/∂A ≡ 0 exactly at init | structural property test |
 | tests/test_gradcheck | Central-difference error floor ~1e-10 (O(1) values) → ~1e-8 (mixed-scale vectors) | negative self-tests |
+| mutation audit | 3 classic bugs injected (Adam ε-placement, LoRA α·r, RoPE off-by-one) — all killed; kill map documented | [calibration/README.md](calibration/README.md) |
+| repros/ RMSNorm (skill dry-run) | ε-stabilized norms: checker truncation ~1/r³ at small scales (checker artifact, spec'd in verification.md §2.6); scale "invariance" exact only at ε=0 | SKILL.md end-to-end dry run |
 
 ## Success criteria (PLAN §9), checked
 
@@ -181,7 +183,7 @@ PLAN.md               # project plan (overview/contract/methodology/verification
 
 - Code and reports only — no paper PDFs (arXiv links cited); MIT licensed.
 - Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md): one PR = one paper's
-  seven-file contract + green tests + calibration gate. Papers with suspected typos or
+  seven-part contract (7 parts, 11 files) + green tests + calibration gate. Papers with suspected typos or
   failing claims are *especially* welcome — those are this repo's most valuable artifacts.
 
 Methodology details: [PLAN.md](PLAN.md) · [SKILL.md](SKILL.md) ·

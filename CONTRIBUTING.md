@@ -1,7 +1,7 @@
 # Contributing to paper2code
 
 Thanks for considering a contribution. The repo has one contribution currency:
-**a reproduction** — one paper's seven-file contract, with green tests. Reports of
+**a reproduction** — one paper's seven-part contract (7 parts, 11 files), with green tests. Reports of
 paper inconsistencies or failing claims are equally welcome (see below).
 
 ## Adding a reproduction (the main path)

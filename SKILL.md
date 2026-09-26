@@ -15,7 +15,7 @@ training time). Say so honestly, and offer to verify the testable math piece onl
 
 ## Artifact contract (fixed for every run; do not add, drop, or rename)
 
-Create `repros/<arxiv-id>-<short-name>/` with exactly seven artifacts:
+Create `repros/<arxiv-id>-<short-name>/` with the seven-part contract (7 parts = 11 files; "seven" refers to the seven top-level entries in the tree below):
 
 ```
 METHOD_CARD.md        # method card: problem formalization, symbol table, core formulas

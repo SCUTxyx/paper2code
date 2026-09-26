@@ -35,6 +35,11 @@ from strongest to weakest evidence; always use the highest level available.
    Put the derivation in the test comments.
 5. Numerical-stability devices (`-inf` masks, log-sum-exp) are implementation details that do
    not change the math; if they affect tolerances, say so in REPORT's limitations.
+6. ε-stabilized norms (RMSNorm/LayerNorm-style): the loss's third derivative grows as
+   1/r³ with the RMS scale r, so central-difference truncation (h²·f'''/6) explodes at
+   small input scales — an artifact of the CHECKER, not the code. When testing at small
+   scales, either pick a scale where truncation stays under rtol (and document the
+   estimate) or loosen the tolerance with the derivation in the test docstring.
 
 ## 3. Residual risk and defenses
 
