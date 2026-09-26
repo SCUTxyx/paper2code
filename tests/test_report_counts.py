@@ -51,3 +51,19 @@ def test_calibration_log_latest_entry_is_all_green():
     latest = blocks[-1]
     assert "all green" in latest.splitlines()[0], (
         "latest calibration entry is not all green — rerun scripts/run_calibration.sh")
+
+
+def test_readme_test_count_matches_reality():
+    """The README states test counts in three places (badge, quick start, success
+    criteria). All must equal what the whole suite actually collects — counts in
+    prose rot silently, so a meta-test pins them."""
+    readme = (REPO / "README.md").read_text()
+    total = _collected_count(REPO)
+    mentions = (
+        re.findall(r"tests-(\d+)%20passed", readme)          # shields badge URL
+        + re.findall(r"(\d+) tests: calibration", readme)     # quick start
+        + re.findall(r"→ (\d+) green in under a minute", readme)  # success criteria
+    )
+    assert mentions, "README no longer states any test count — update this meta-test"
+    for m in mentions:
+        assert int(m) == total, f"README says {m} tests, actual {total} — update README"

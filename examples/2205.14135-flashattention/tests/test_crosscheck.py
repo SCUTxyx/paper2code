@@ -17,7 +17,6 @@ import core_pseudo
 def test_tiled_equals_direct():
     """F1 (the paper's core claim): tiled attention is EXACT attention.
     1e-12 across shapes and both causal settings."""
-    rng = np.random.default_rng(0)
     for seed, (n_q, n_k, d, d_v) in enumerate([(8, 8, 4, 3), (1, 7, 3, 2), (16, 4, 2, 5)]):
         r = np.random.default_rng(seed)
         Q = r.standard_normal((n_q, d))

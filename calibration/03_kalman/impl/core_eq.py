@@ -23,7 +23,6 @@ def kf_filter(ys, H, R, F=None, Q=None, x0=None, P0=None):
     P = np.eye(n) * 1e10 if P0 is None else np.asarray(P0, dtype=np.float64).copy()
 
     means, covs, gains, nis = [x.copy()], [P.copy()], [], []
-    Rinv = np.linalg.inv(R)
     for t in range(ys.shape[0]):
         # predict
         x = F @ x

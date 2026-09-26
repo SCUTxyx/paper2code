@@ -11,7 +11,6 @@ for _m in [m for m in sys.modules if m.startswith("core_")]:
 import numpy as np
 
 import core_eq
-import core_pseudo
 
 
 def _fixture(seed=0, d=6, k=5, r=2):

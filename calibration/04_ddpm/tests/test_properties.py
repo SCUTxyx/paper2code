@@ -10,7 +10,6 @@ for _m in [m for m in sys.modules if m.startswith("core_")]:
 import numpy as np
 
 import core_eq
-import core_pseudo
 
 
 def test_schedule_endpoints():

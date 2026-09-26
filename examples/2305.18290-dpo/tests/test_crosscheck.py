@@ -16,7 +16,6 @@ import core_pseudo
 
 def test_eq7_vs_bradley_terry():
     """Two derivation paths (Eq.7 literal / Eq.6 computing p first) agree to 1e-12."""
-    rng = np.random.default_rng(0)
     for seed, beta in ((0, 0.1), (1, 0.5), (2, 2.0)):
         r = np.random.default_rng(seed)
         lw, ll = r.standard_normal(8), r.standard_normal(8)

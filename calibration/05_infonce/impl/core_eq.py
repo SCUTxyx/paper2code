@@ -14,7 +14,6 @@ def _normalize(X):
 
 def _log_softmax_ce(S):
     """Cross-entropy with the diagonal as labels: -1/N Σ_i (S[i,i] - logsumexp(S[i]))."""
-    n = S.shape[0]
     m = np.max(S, axis=1, keepdims=True)
     lse = m[:, 0] + np.log(np.exp(S - m).sum(axis=1))
     return float(-(np.diag(S) - lse).mean())

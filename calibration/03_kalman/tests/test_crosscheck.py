@@ -41,7 +41,6 @@ def test_static_model():
 
 def test_dynamic_model():
     H, ys, R, P0, x0 = _data(seed=1)
-    rng = np.random.default_rng(2)
     th = 0.7  # slightly contracting rotation as the transition, nonzero process noise
     F = 0.98 * np.array([[np.cos(th), -np.sin(th), 0],
                          [np.sin(th), np.cos(th), 0],

@@ -15,7 +15,6 @@ import core_pseudo
 
 
 def test_vectorized_equals_loop():
-    rng = np.random.default_rng(0)
     for seed, (n, d, tau) in enumerate([(6, 8, 0.07), (3, 4, 1.0), (5, 2, 0.5)]):
         r = np.random.default_rng(seed)
         I = r.standard_normal((n, d)) * (1.0 + seed)

@@ -17,7 +17,6 @@ import core_pseudo
 def test_two_paths_match():
     """L4 (forward form): W0x + (α/r)(BA)x == W0x + (α/r)B(Ax) at 1e-12 — the
     matrix product's associativity, over several shapes and scalings."""
-    rng = np.random.default_rng(0)
     for seed, (d, k, r) in enumerate([(6, 5, 2), (1, 7, 1), (8, 3, 3)]):
         r_ = core_eq.init_lora(d, k, r, np.random.default_rng(seed))
         B, A = r_[0], r_[1]
