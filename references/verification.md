@@ -1,46 +1,67 @@
-# 验证阶梯与数值规范
+# Verification ladder and numeric specifications
 
-本文档是 SKILL.md §S4 的实施细则。单次复现按四级阶梯从强到弱取用,能用高级别就不用低级别。
+This document details SKILL.md stage S4. Each reproduction climbs the four-level ladder
+from strongest to weakest evidence; always use the highest level available.
 
-## 1. 四级阶梯
+## 1. The four-level ladder
 
-| 级别 | 手段 | 预言(prophet)来自哪里 | 通过标准 | 局限 |
+| Level | Method | Where the oracle comes from | Pass criterion | Limitation |
 |---|---|---|---|---|
-| **L1 对拍** | 与权威参考实现同输入比输出 | scipy / 官方 repo 等独立实现 | `rtol=1e-5` | 参考实现自己也可能是错的;有参考时最强,无参考时不可用 |
-| **L2 性质测试** | 退化 / 不变量 / 梯度检查 / 极限与单调性 | 论文自己的数学声明(退化关系、不变量、复杂度方向性) | 梯度 `rtol<1e-6`;离散性质 `1e-12` | 抓不住「错得自洽」的误读(见 §3) |
-| **L3 论文锚点** | 复算论文附录/正文里的 toy 数字、闭式小例 | 作者本人 | 值对拍 `rtol=1e-5`;统计型按 §2.3 | 不是每篇论文都有可复算锚点;有则必用 |
-| **L4 公式对照表** | EQ_MAP:公式号 → 文件:行 | 人工 | 供人审,不自动验证 | 把人工复核成本降到几分钟 |
+| **L1 Cross-check** | Same input → compare against an authoritative reference | scipy / official repos / independent implementations | `rtol=1e-5` | The reference itself may be wrong; strongest when it exists, unavailable otherwise |
+| **L2 Property tests** | Degeneracy / invariance / gradient checks / limits & monotonicity | The paper's own mathematical claims | gradients `rtol<1e-6`; exact discrete properties `1e-12` | Cannot catch *self-consistent* misreadings (see §3) |
+| **L3 Paper anchors** | Recompute the paper's toy numbers / closed-form mini-examples | The authors themselves | value checks `rtol=1e-5`; statistical checks per §2.3 | Not every paper has reproducible anchors; use them whenever present |
+| **L4 Formula map** | EQ_MAP: formula number → file:line | Human | Not automatic | Reduces human review to minutes |
 
-### L2 的四类标准测试(产出契约固定文件名)
+### The four standard test kinds (fixed names in the artifact contract)
 
-- `test_gradients.py` —— 有限差分梯度检查:对实现中每个可微标量输出,解析梯度 vs `scripts/gradcheck.py` 的中心差分。
-- `test_properties.py` —— 退化(参数极端值还原为已知方法)、不变量(归一化、置换、平移)、极限与单调性。
-- `test_anchor.py` —— 论文自带数字锚点;没有就用**手算可验的闭式小例**(推导过程写在测试注释里,常数落成字面量)。
-- `test_crosscheck.py` —— 双表述实现互对拍(公式版 `core_eq.py` vs 伪代码/等价表述版 `core_pseudo.py`)。
+- `test_gradients.py` — finite-difference gradient checks: for every differentiable scalar
+  output, analytic gradient vs central differences from `scripts/gradcheck.py`.
+- `test_properties.py` — degeneracy (parameter extremes recover a known method),
+  invariances (normalization, permutation, shift), limits and monotonicity.
+- `test_anchor.py` — numeric anchors from the paper; when absent, use hand-verifiable
+  closed-form mini-cases (derivation in test comments, constants as literals).
+- `test_crosscheck.py` — two independent formulations cross-checked
+  (formula version `core_eq.py` vs pseudocode/equivalent-derivation version `core_pseudo.py`).
 
-## 2. 数值规范
+## 2. Numeric specifications
 
-1. 全部 float64;随机数一律 `np.random.default_rng(seed)` 显式播种。
-2. 梯度检查:float64 中心差分,相对误差 **< 1e-6**;步长取中心差分最优点 `cbrt(eps)·max(1,|x|)`(≈6e-6,`scripts/gradcheck.py` 已内置)。
-3. 值对拍(双实现 / 参考实现 / 闭式):**rtol = 1e-5**;数学上应精确相等的关系(如 softmax 行和、旋转正交性)用 **1e-12**。
-4. 统计型测试(蒙特卡洛对照):**容差必须由解析公式导出**(如均值容差 = 5·σ/√N、方差容差 = 5·σ²·√(2/N)),禁止拍脑袋容差;推导写进测试注释。
-5. `-inf` 掩码、`log-sum-exp` 等数值稳定技巧属实现细节,不改变数学口径;若影响容差,在 REPORT 局限节说明。
+1. Everything float64; all randomness via explicitly seeded `np.random.default_rng(seed)`.
+2. Gradient checks: float64 central differences, relative error **< 1e-6**; step size at the
+   central-difference optimum `cbrt(eps)·max(1,|x|)` (≈6e-6, built into `scripts/gradcheck.py`).
+3. Value cross-checks (dual implementations / references / closed forms): **rtol = 1e-5**;
+   mathematically exact relations (softmax row sums, orthogonal rotations) use **1e-12**.
+4. Statistical tests (Monte Carlo comparisons): **tolerances must be derived analytically**
+   (e.g. mean tolerance = 5·σ/√N, variance tolerance = 5·σ²·√(2/N)); no eyeballed tolerances.
+   Put the derivation in the test comments.
+5. Numerical-stability devices (`-inf` masks, log-sum-exp) are implementation details that do
+   not change the math; if they affect tolerances, say so in REPORT's limitations.
 
-## 3. 残余风险与防线
+## 3. Residual risk and defenses
 
-**L2 抓不住「错得自洽」的误读**(如 ε 加错位置、log 漏开、性质照样全绿)。防线按序:
+**L2 cannot catch a self-consistent misreading** (ε added in the wrong place, a missing
+log, properties still all green). Defenses, in order:
 
-1. 双表述独立实现互对拍 —— 公式逐条直译版 vs 伪代码/等价推导版,两条计算路径不同,共享同一个误读的概率大幅下降;
-2. EQ_MAP 人工复核 —— 把每条公式的实现行号列出来,人扫一眼几分钟;
-3. **最终裁决权始终留给人**:REPORT 是验证报告,不是正确性保证书。
+1. Two independent formulations cross-checked — a literal transcription of the formulas vs
+   a pseudocode / equivalent-derivation version; different computation paths make a shared
+   misreading much less likely;
+2. EQ_MAP human review — every formula's implementing line listed; a human scan takes minutes;
+3. **Final judgment always rests with a human**: REPORT is a verification report, not a
+   certificate of correctness.
 
-## 4. 适用性预检(S2 阶段执行)
+## 4. Applicability precheck (run in stage S2)
 
-- **系统型论文**(整体 pipeline:训练框架、推理系统、分布式方案):核心贡献不可单测。明确说明,只测其中可测的数学件(如调度公式、通信量模型),其余如实进 GAP_LIST。
-- **数据集型论文**(benchmark / 数据构造):数学件可能只有统计口径。测统计口径的一致性,效果数字不复算(OUT of scope)。
-- **纯理论论文**(无算法框):只做 EQ_MAP + 把可机械验证的引理做成性质测试;做不了就诚实说明。
+- **Systems papers** (training frameworks, inference systems, distributed schemes): the core
+  contribution is not unit-testable. Say so; test only the testable math pieces (schedules,
+  cost models), put the rest in GAP_LIST honestly.
+- **Dataset/benchmark papers**: the math piece may be just a statistical protocol. Test the
+  protocol's consistency; do not recompute benchmark numbers (out of scope).
+- **Pure theory papers** (no algorithm box): produce the EQ_MAP only, plus property tests for
+  any mechanically checkable lemma; if none, say so honestly.
 
-## 5. 失败处理
+## 5. Failure handling
 
-- 测试 fail:**不许**写「验证通过」。失败如实进 REPORT 的结果矩阵与「发现」节——失败本身是发现(可能是实现错、论文笔误、或声明过强)。
-- 论文疑点(公式前后不一致、符号未定义、附录与正文冲突)记入 REPORT「发现」,并在 GAP_LIST 标注影响面。
+- A failing test must **never** be reported as "verified". Failures go into REPORT's results
+  matrix and findings verbatim — a failure is itself a finding (implementation bug, paper
+  typo, or an overreaching claim).
+- Paper inconsistencies (formulas that disagree, undefined symbols, appendix vs main text)
+  go into REPORT's findings, with their blast radius noted in GAP_LIST.

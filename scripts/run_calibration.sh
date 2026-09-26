@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# skill 级回归测试:5 篇考卷逐一 pytest,结果追加到 CALIBRATION_LOG.md。
-# 通过标准:5/5 全绿(PLAN §4.3)。改 SKILL.md 或共享脚本后必须重跑。
+# Skill-level regression test: run each of the 5 exams under pytest, append results
+# to CALIBRATION_LOG.md. Pass criterion: 5/5 green (PLAN §4.3). Mandatory after any
+# change to SKILL.md or shared scripts.
 #
-# 判定基于 pytest 退出码(0=通过,1=有失败,5=没收集到测试——也算失败),
-# 不解析输出文本:输出格式变了不能让回归判定跟着失效。
+# Verdicts are gated on pytest EXIT CODES (0=pass, 1=failures, 5=no tests collected —
+# also a failure), never on parsing output text: the output format may change; the
+# regression gate must not silently break with it.
 #
-# 用法: conda activate test && bash scripts/run_calibration.sh
-#   PYTHON=/path/to/python bash scripts/run_calibration.sh   # 或显式指定解释器
+# Usage: conda activate test && bash scripts/run_calibration.sh
+#   PYTHON=/path/to/python bash scripts/run_calibration.sh   # or point at an interpreter
 set -u
 cd "$(cd "$(dirname "$0")/.." && pwd)"
 
@@ -17,7 +19,7 @@ passed=0; failed=0; detail_lines=""
 for d in calibration/*/; do
   [ -d "$d/tests" ] || continue
   name=$(basename "$d")
-  # 命令替换内不带管道,这样 rc 就是 pytest 本身的退出码
+  # no pipeline inside the command substitution, so rc is pytest's own exit code
   out_full="$("$PY" -m pytest "$d/tests" -q 2>&1)"
   rc=$?
   out="$(printf '%s\n' "$out_full" | tail -1)"
@@ -33,16 +35,16 @@ done
 
 total=$((passed+failed))
 if [ "$failed" -eq 0 ]; then
-  verdict="✅ ${passed}/${total} 全绿"
+  verdict="✅ ${passed}/${total} all green"
 else
-  verdict="❌ ${failed}/${total} 个考卷未通过"
+  verdict="❌ ${failed}/${total} exam(s) failed"
 fi
 
 {
   echo ""
   echo "## $(date '+%Y-%m-%d %H:%M:%S') — $verdict"
   echo ""
-  echo "| 考卷 | pytest 结果 |"
+  echo "| Exam | pytest result |"
   echo "|---|---|"
   printf '%s' "$detail_lines"
 } >> "$LOG"

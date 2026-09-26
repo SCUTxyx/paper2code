@@ -1,5 +1,6 @@
-"""仓库级 pytest 配置:把 scripts/ 加入 import 路径,使所有 repro 与考卷
-都能 `from gradcheck import ...` 复用同一个有限差分工具。"""
+"""Repository-level pytest configuration: puts scripts/ on the import path so that
+every repro and exam can reuse the shared finite-difference checker via
+`from gradcheck import ...`."""
 
 from pathlib import Path
 import sys

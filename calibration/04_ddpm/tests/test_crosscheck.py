@@ -1,7 +1,9 @@
-"""DDPM 双实现互对拍(D2):同噪声序列下,递推 = 未展开加权和 = 闭式(合成噪声)。
+"""DDPM dual-implementation cross-check (D2): under the SAME noise sequence,
+recursion = unrolled weighted sum = closed form (with the composed noise).
 
-D2 是精确恒等(推导见 METHOD_CARD),容差 1e-10;
-闭式路径需先把逐步噪声按权重合成 ε_comb,再走 Eq.(4),同样应精确一致。
+D2 is an exact identity (derivation in METHOD_CARD), tolerance 1e-10; the
+closed-form path must first compose the step noises into ε_comb by their weights,
+then go through Eq.(4) — also exactly equal.
 """
 
 import sys
@@ -20,7 +22,7 @@ T, D = 1000, 4
 
 
 def _combined_eps(eps_seq, t, betas):
-    """ε_comb = Σ_s √(ᾱ_t/ᾱ_s)·√(1-α_s)·ε_s / √(1-ᾱ_t)。"""
+    """ε_comb = Σ_s √(ᾱ_t/ᾱ_s)·√(1-α_s)·ε_s / √(1-ᾱ_t)."""
     alphas = 1.0 - betas
     abar = np.cumprod(alphas)
     acc = np.zeros(D)
@@ -31,7 +33,7 @@ def _combined_eps(eps_seq, t, betas):
 
 
 def test_iterative_equals_unrolled():
-    """D2: 同一 ε_s 前缀下两条路径精确相等。"""
+    """D2: the two paths are exactly equal under the same ε_s prefix."""
     betas = core_eq.linear_beta_schedule(T)
     rng = np.random.default_rng(0)
     x0 = rng.uniform(-1, 1, D)
@@ -43,7 +45,8 @@ def test_iterative_equals_unrolled():
 
 
 def test_closed_form_with_combined_eps():
-    """闭式 Eq.(4) 用合成噪声 ε_comb 应精确复现逐步递推结果。"""
+    """The closed form Eq.(4) with the composed noise ε_comb must exactly reproduce
+    the step-by-step recursion."""
     betas = core_eq.linear_beta_schedule(T)
     abars = core_eq.alpha_bar_seq(betas)
     rng = np.random.default_rng(1)

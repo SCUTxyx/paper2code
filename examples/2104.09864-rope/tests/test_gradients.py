@@ -1,4 +1,5 @@
-"""RoPE 梯度检查(R5):解析梯度(旋转转置)vs 中心差分。"""
+"""RoPE gradient checks (R5): analytic gradients (the rotation's transpose) vs
+central differences."""
 
 import sys
 from pathlib import Path
@@ -18,7 +19,8 @@ D, M = 8, 17
 
 
 def test_grad_rotate_wrt_x():
-    """∂ wᵀf(x,m)/∂x = R^{m⊤}w = f(w,−m)(旋转矩阵的转置即逆旋转)。"""
+    """∂ wᵀf(x,m)/∂x = R^{m⊤}w = f(w,−m) (a rotation's transpose is the inverse
+    rotation)."""
     x = np.random.default_rng(0).standard_normal(D)
     w = np.random.default_rng(1).standard_normal(D)
     analytic = core_eq.rope_rotate(w, -M)          # R^{m⊤} = R^{−m}
@@ -29,7 +31,8 @@ def test_grad_rotate_wrt_x():
 
 
 def test_grad_score_wrt_q():
-    """∂ ⟨f(q,m),f(k,n)⟩/∂q = R^{m⊤}R^n k = f(k, n−m)(相对位置结构的直接推论)。"""
+    """∂ ⟨f(q,m),f(k,n)⟩/∂q = R^{m⊤}R^n k = f(k, n−m) — a direct corollary of the
+    relative-position structure."""
     rng = np.random.default_rng(2)
     q, k = rng.standard_normal(D), rng.standard_normal(D)
     m, n = 5, 41
@@ -41,7 +44,7 @@ def test_grad_score_wrt_q():
 
 
 def test_grad_via_matrix_form():
-    """显式矩阵路径(core_pseudo)的梯度同样应与中心差分一致。"""
+    """The explicit-matrix path (core_pseudo) must satisfy the same check."""
     x = np.random.default_rng(3).standard_normal(D)
     w = np.random.default_rng(4).standard_normal(D)
     analytic = core_pseudo.rope_rotate_matrix(w, -M)

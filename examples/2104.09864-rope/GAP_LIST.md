@@ -1,9 +1,9 @@
-# 复现差距清单:RoPE(arXiv:2104.09864)
+# Gap list: RoPE (arXiv:2104.09864)
 
-| # | 差距 | 缺什么 | 影响 |
+| # | Gap | What's missing | Impact |
 |---|---|---|---|
-| 1 | §3.4.3「内积上界随相对距离衰减」未转化为自动测试 | 渐近上界声明依赖向量具体结构,无确定性判据 | 该性质只有人工/统计验证;TEST_PLAN 已声明去向 |
-| 2 | 长上下文外推效果(论文核心卖点之一) | 真实语料 + 训练好的模型(GPU) | 本仓库范围(OUT):只测位置编码的数学件 |
-| 3 | 下游任务效果(RoFormer vs Transformer baseline) | 同上 + 训练时长 | 同上 |
-| 4 | fp16/bf16 数值行为 | 半精度环境 | 生产实现需自行验证舍入影响 |
-| 5 | 非标准基底(base ≠ 10000)的变体 | 论文未给出,后续工作提出 | 只复现原文 Eq.(15) 的单一配置 |
+| 1 | §3.4.3 "inner-product upper bound decays with relative distance" not turned into an automated test | The asymptotic bound depends on vector structure; no deterministic criterion | That property only gets human/statistical verification; declared in TEST_PLAN |
+| 2 | Long-context extrapolation quality (a headline selling point) | Real corpora + a trained model (GPU) | Out of repo scope: only the position-encoding math piece is tested |
+| 3 | Downstream task quality (RoFormer vs Transformer baseline) | Same + training time | Same |
+| 4 | fp16/bf16 numerical behavior | Half-precision environment | Production implementations must verify rounding effects themselves |
+| 5 | Non-standard bases (base ≠ 10000) variants | Not in the paper; proposed by later work | Only the original Eq.(15) configuration reproduced |

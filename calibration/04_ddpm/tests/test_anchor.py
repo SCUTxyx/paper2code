@@ -1,8 +1,9 @@
-"""DDPM 锚点测试(D1):闭式边缘 vs 逐步加噪的蒙特卡洛统计。
+"""DDPM anchor test (D1): closed-form marginal vs step-by-step noising Monte Carlo.
 
-容差按解析公式导出(规范 §2.4,禁拍脑袋):
-- 均值:每维 std = √((1-ᾱ_t)/N) → 容差 5σ/√N;
-- 方差:高斯样本方差的相对标准误 ≈ √(2/N) → 容差 5·√(2/N)(相对)。
+Tolerances derived analytically (spec §2.4, no eyeballed numbers):
+- mean: per-dimension std = √((1-ᾱ_t)/N) → tolerance 5σ/√N;
+- variance: relative standard error of a Gaussian sample variance ≈ √(2/N)
+  → relative tolerance 5·√(2/N).
 """
 
 import sys
@@ -17,20 +18,21 @@ import numpy as np
 import core_eq
 import core_pseudo
 
-T, D, T_T = 1000, 3, 400   # 调度长度 / 数据维 / 校准时刻
-N = 8000                   # 蒙特卡洛轨迹数
+T, D, T_T = 1000, 3, 400   # schedule length / data dim / calibration time step
+N = 8000                   # Monte Carlo trajectory count
 
 
 def _setup():
     betas = core_eq.linear_beta_schedule(T)
     abars = core_eq.alpha_bar_seq(betas)
     rng = np.random.default_rng(0)
-    x0 = rng.uniform(-1.0, 1.0, size=D)   # 论文设定 x0 ∈ [-1,1](§4)
+    x0 = rng.uniform(-1.0, 1.0, size=D)   # paper's setting x0 ∈ [-1,1] (§4)
     return betas, abars, x0
 
 
 def test_closed_form_vs_iterative_monte_carlo():
-    """D1: t=400 处,闭式采样与逐步加噪的均值/方差都应落在解析容差内。"""
+    """D1: at t=400, both the closed-form and iterative samplers must land within
+    the analytic tolerances of the same mean/variance."""
     betas, abars, x0 = _setup()
     t = T_T
     ab = abars[t - 1]
@@ -40,8 +42,8 @@ def test_closed_form_vs_iterative_monte_carlo():
     rng = np.random.default_rng(43)
     xs_iter = core_pseudo.q_sample_iterative_batch(x0, t, rng, betas, N)
 
-    tol_mean = 5.0 * np.sqrt((1.0 - ab) / N)          # 每维均值容差
-    tol_var = 5.0 * np.sqrt(2.0 / N)                  # 方差相对容差
+    tol_mean = 5.0 * np.sqrt((1.0 - ab) / N)          # per-dim mean tolerance
+    tol_var = 5.0 * np.sqrt(2.0 / N)                  # variance relative tolerance
     for name, xs in (("closed", xs_closed), ("iterative", xs_iter)):
         mean_err = np.abs(xs.mean(axis=0) - np.sqrt(ab) * x0)
         var = xs.var(axis=0)
@@ -51,7 +53,8 @@ def test_closed_form_vs_iterative_monte_carlo():
 
 
 def test_two_paths_agree_in_distribution():
-    """D1 强化:两条路径的均值差也应远小于各自容差之和(同分布的交叉印证)。"""
+    """D1, strengthened: the two paths' means must also agree with each other,
+    far inside the sum of their tolerances (a cross-check of same-distribution)."""
     betas, abars, x0 = _setup()
     t = T_T
     rng = np.random.default_rng(7)
@@ -60,4 +63,4 @@ def test_two_paths_agree_in_distribution():
     xs_iter = core_pseudo.q_sample_iterative_batch(x0, t, rng, betas, N)
     tol = 5.0 * np.sqrt((1.0 - abars[t - 1]) / N)
     diff = np.abs(xs_closed.mean(axis=0) - xs_iter.mean(axis=0))
-    assert np.all(diff < np.sqrt(2) * tol), f"两条路径均值差 {diff} 过大"
+    assert np.all(diff < np.sqrt(2) * tol), f"mean gap between paths {diff} too large"

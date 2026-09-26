@@ -1,4 +1,5 @@
-"""Attention 双实现互对拍:向量化 -inf 掩码版 vs 逐查询子集归一化版。"""
+"""Attention dual-implementation cross-check: vectorized -inf masking vs
+per-query subset normalization."""
 
 import sys
 from pathlib import Path
@@ -26,7 +27,7 @@ def test_same_output_with_and_without_mask():
 
 
 def test_rectangular_kv():
-    """键值长度与查询长度不同(交叉注意力)时同样一致。"""
+    """Cross-attention (different query/key lengths) agrees too."""
     rng = np.random.default_rng(1)
     Q = rng.standard_normal((4, 6))
     K = rng.standard_normal((7, 6))

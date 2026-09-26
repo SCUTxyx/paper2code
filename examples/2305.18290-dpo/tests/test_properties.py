@@ -1,4 +1,4 @@
-"""DPO 性质测试(P1 退化 / P2 单调与交换恒等式)。"""
+"""DPO property tests (P1 degeneracy / P2 monotonicity & swap identity)."""
 
 import sys
 from pathlib import Path
@@ -13,29 +13,30 @@ import core_eq
 
 
 def test_reference_policy_gives_log2():
-    """P1: π_θ = π_ref → z=0 → L = log 2(精确)。"""
+    """P1: π_θ = π_ref → z=0 → L = log 2 (exact)."""
     rng = np.random.default_rng(0)
     a = rng.standard_normal(7)
     b = rng.standard_normal(7)
-    L = core_eq.dpo_loss(a, b, a, b, beta=0.1)   # logπ_θ 与 logπ_ref 相同
+    L = core_eq.dpo_loss(a, b, a, b, beta=0.1)   # log π_θ identical to log π_ref
     assert abs(L - np.log(2.0)) < 1e-15
 
 
 def test_monotone_decreasing_in_z():
-    """P2: 损失对 z 严格单调递减(σ 的单调性)。"""
+    """P2: the loss is strictly decreasing in z (monotonicity of σ)."""
     beta = 0.1
     base = np.array([1.0])
     losses = []
     for delta in np.linspace(-3.0, 3.0, 13):
-        # 固定 ref 与被拒项,抬高被选项 → z 单调增 → L 单调降
+        # fix the reference and the rejected item, raise the chosen one →
+        # z increases monotonically → L decreases monotonically
         losses.append(core_eq.dpo_loss(base + delta, base, np.zeros(1),
                                        np.zeros(1), beta=beta))
     diffs = np.diff(losses)
-    assert np.all(diffs < 0.0), f"非严格递减: {losses}"
+    assert np.all(diffs < 0.0), f"not strictly decreasing: {losses}"
 
 
 def test_swap_identity():
-    """P2: L(l,w) − L(w,l) = z(w,l) 恒等式(推导:logσ(−z) = −z + logσ(z))。"""
+    """P2: L(l,w) − L(w,l) = z(w,l) exactly (derivation: logσ(−z) = −z + logσ(z))."""
     rng = np.random.default_rng(1)
     lw = rng.standard_normal(5)
     ll = rng.standard_normal(5)

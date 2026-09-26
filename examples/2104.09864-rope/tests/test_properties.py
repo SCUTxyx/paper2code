@@ -1,4 +1,5 @@
-"""RoPE 性质测试(R1 正交 / R2 相对位置不变性 / R4 复合律)。"""
+"""RoPE property tests (R1 orthogonality / R2 relative-position invariance /
+R4 composition)."""
 
 import sys
 from pathlib import Path
@@ -17,7 +18,7 @@ def _vec(seed, d=8):
 
 
 def test_rotation_preserves_norm():
-    """R1: ‖f(x,m)‖ = ‖x‖ 精确(旋转是正交变换)。"""
+    """R1: ‖f(x,m)‖ = ‖x‖ exactly (a rotation is orthogonal)."""
     x = _vec(0)
     for m in (0, 1, 17, 1000):
         assert np.allclose(np.linalg.norm(core_eq.rope_rotate(x, m)),
@@ -25,8 +26,8 @@ def test_rotation_preserves_norm():
 
 
 def test_relative_position_invariance():
-    """R2(论文核心声明): ⟨f(q,m),f(k,n)⟩ 只依赖 m−n。
-    对多组 (m,n,c) 与多个随机向量对验证,1e-12。"""
+    """R2 (the paper's core claim): ⟨f(q,m),f(k,n)⟩ depends only on m−n.
+    Verified over several (m,n,c) pairs and random vectors, 1e-12."""
     rng = np.random.default_rng(1)
     for _ in range(5):
         q, k = rng.standard_normal(8), rng.standard_normal(8)
@@ -38,7 +39,7 @@ def test_relative_position_invariance():
 
 
 def test_composition():
-    """R4: 先转 m 再转 n = 直接转 m+n。"""
+    """R4: rotating by m then n equals rotating by m+n."""
     x = _vec(2)
     m, n = 13, 29
     a = core_eq.rope_rotate(core_eq.rope_rotate(x, m), n)
@@ -47,6 +48,6 @@ def test_composition():
 
 
 def test_identity_rotation_at_zero():
-    """m=0 时 f(x,0) = x 精确(θ 任意,cos0=1, sin0=0)。"""
+    """f(x,0) = x exactly (cos 0 = 1, sin 0 = 0 for any θ)."""
     x = _vec(3, d=6)
     assert np.allclose(core_eq.rope_rotate(x, 0), x, rtol=0, atol=0)

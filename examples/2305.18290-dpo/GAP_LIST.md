@@ -1,9 +1,9 @@
-# 复现差距清单:DPO(arXiv:2305.18290)
+# Gap list: DPO (arXiv:2305.18290)
 
-| # | 差距 | 缺什么 | 影响 |
+| # | Gap | What's missing | Impact |
 |---|---|---|---|
-| 1 | Eq.(7) 的期望在真实偏好数据上未估计 | 偏好数据集(如 HH-RLHF)与训练好的策略 | 效果与收敛性未验证;仅验证损失函数的数学件 |
-| 2 | 与 RLHF-PPO 基线的对比实验 | GPU 训练环境 + 评估管线 | 论文表 1/图 2 数字未复算(OUT of scope) |
-| 3 | β 敏感性与 KL 偏离行为 | 训练时长 | 只验证 β 的代数角色(式内位置),非经验行为 |
-| 4 | log-prob 的来源假设 | 白盒模型输出 log-prob | 黑盒 API 场景本方法不适用(论文同样如此) |
-| 5 | 多轮对话/长回答的长度归一化问题 | 论文未规定,社区有分歧 | 按原文口径实现,不加归一化 |
+| 1 | Eq.(7)'s expectation not estimated on real preference data | Preference dataset (e.g. HH-RLHF) + trained policies | Effect and convergence unverified; only the loss's math piece is verified |
+| 2 | Comparison against the RLHF-PPO baseline | GPU training environment + evaluation pipeline | Paper Tables/Figures not recomputed (out of scope) |
+| 3 | β sensitivity and KL-deviation behavior | Training time | Only β's algebraic role (its position in the formula) is verified, not its empirical behavior |
+| 4 | Source of log-probs | White-box model emitting log-probs | Not applicable to black-box API scenarios (same as the paper) |
+| 5 | Length normalization for multi-turn/long answers | Unspecified in the paper; community-divergent | Implemented in the paper's original convention, no normalization added |

@@ -1,6 +1,7 @@
-"""Adam 梯度检查:m̂_t、v̂_t 对梯度历史的解析敏感系数 vs 中心差分。
+"""Adam gradient checks: analytic sensitivity of m̂_t, v̂_t w.r.t. the gradient
+history vs central differences.
 
-手写推导(由 A3 闭式展开式求导):
+Hand derivation (differentiating the unrolled form of claim A3):
   ∂m̂_t/∂g_k = (1-β1)·β1^{t-k} / (1-β1^t)                    (k=1..t)
   ∂v̂_t/∂g_k = 2(1-β2)·β2^{t-k}·g_k / (1-β2^t)
 """
@@ -30,7 +31,7 @@ def test_grad_m_hat_wrt_history():
     rng = np.random.default_rng(0)
     seq = rng.standard_normal((T, N))
     analytic = np.zeros(T * N)
-    for k in range(T):  # g_k 的 0-based 下标 k ↔ 论文记号 t-k = T-1-k
+    for k in range(T):  # 0-based k ↔ paper's t-k = T-1-k
         analytic[k * N] = (1 - BETA1) * BETA1 ** (T - 1 - k) / (1 - BETA1 ** T)
     err = assert_grad_close(
         lambda x: _run(x)["m_hats"][T - 1, 0], seq.ravel(), analytic,

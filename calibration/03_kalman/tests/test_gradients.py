@@ -1,8 +1,8 @@
-"""Kalman 梯度检查(K4):x_T 对全部观测的雅可比。
+"""Kalman gradient check (K4): Jacobian of x_T w.r.t. all observations.
 
-手写推导(信息形式,METHOD_CARD K4):
-  x_T = Λ_T⁻¹(P0⁻¹x0 + Σ_t HᵀR⁻¹y_t),Λ_T = P0⁻¹ + T·HᵀR⁻¹H
-  ⇒ ∂x_T/∂y_t = Λ_T⁻¹HᵀR⁻¹(t = 1..T 共用同一矩阵)。
+Hand derivation (information form, METHOD_CARD K4):
+  x_T = Λ_T⁻¹(P0⁻¹x0 + Σ_t HᵀR⁻¹y_t), Λ_T = P0⁻¹ + T·HᵀR⁻¹H
+  ⇒ ∂x_T/∂y_t = Λ_T⁻¹HᵀR⁻¹ (the same matrix for every t = 1..T).
 """
 
 import sys
@@ -32,11 +32,11 @@ def test_jacobian_wrt_observations():
     Rinv = np.linalg.inv(R)
     Lam = np.linalg.inv(P0) + T * (H.T @ Rinv @ H)
     M = np.linalg.solve(Lam, H.T @ Rinv)         # ∂x_T/∂y_t (n × dy)
-    analytic = np.tile(M, (1, T))                # (n, T·dy) 按观测块平铺
+    analytic = np.tile(M, (1, T))                # (n, T·dy), tiled per observation
 
     def f(y_flat):
         out = core_eq.kf_filter(y_flat.reshape(T, DY), H, R=R, x0=x0, P0=P0)
-        return float(out["means"][-1][0])        # 取均值第一个分量做标量损失
+        return float(out["means"][-1][0])        # scalar loss: first component of the mean
 
     err = assert_grad_close(f, ys.ravel(), analytic[0], rtol=1e-6,
                             name="d x_T[0] / d y")

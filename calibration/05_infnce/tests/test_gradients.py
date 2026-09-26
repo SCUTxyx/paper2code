@@ -1,4 +1,5 @@
-"""InfoNCE/CLIP 梯度检查(N5):解析梯度(含归一化投影)vs 中心差分。"""
+"""InfoNCE/CLIP gradient checks (N5): analytic gradients (with the normalization
+projection) vs central differences."""
 
 import sys
 from pathlib import Path
@@ -32,8 +33,9 @@ def test_grads_wrt_I_and_T():
 
 
 def test_grad_zero_for_identical_normalized_inputs():
-    """I = T(单位向量)时,损失对每行输入的梯度应与该行正交(归一化投影),
-    表现为:沿行方向的分量精确为 0。"""
+    """With I = T (unit vectors), the loss gradient w.r.t. each input row must be
+    orthogonal to that row (normalization projection), i.e. its component along
+    the row direction is exactly 0."""
     rng = np.random.default_rng(1)
     V = rng.standard_normal((N_BATCH, D))
     _, dI, dT = core_eq.clip_loss(V, V, tau=0.1, return_grads=True)

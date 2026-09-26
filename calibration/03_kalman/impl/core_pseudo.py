@@ -1,17 +1,21 @@
-"""Kalman 滤波 —— 信息形式(独立表述)。
+"""Kalman filter — information form (independent formulation).
 
-维护信息矩阵 Λ = P⁻¹ 与信息向量 η = Λ x̂(推导见 METHOD_CARD「等价表述」):
-- 预测:协方差域完成(P⁻ = F Λ⁻¹ Fᵀ + Q,再转回信息域);
-- 更新:信息域直接累加 Λ += HᵀR⁻¹H、η += HᵀR⁻¹y —— 不经过增益公式;
-- 增益用后验恒等式 K = Λ⁻¹HᵀR⁻¹(与标准式 K = P⁻HᵀS⁻¹ 是不同计算路径)。
-供 test_crosscheck.py 互对拍。
+Maintains the information matrix Λ = P⁻¹ and information vector η = Λ x̂
+(derivation in METHOD_CARD "equivalent formulation"):
+- predict: done in the covariance domain (P⁻ = F Λ⁻¹ Fᵀ + Q, then back to
+  information form);
+- update: information accumulates directly, Λ += HᵀR⁻¹H, η += HᵀR⁻¹y — the gain
+  formula is never used;
+- the gain is computed via the posterior identity K = Λ⁻¹HᵀR⁻¹ (a different
+  computation path from the standard K = P⁻HᵀS⁻¹).
+For the cross-check in test_crosscheck.py.
 """
 
 import numpy as np
 
 
 def kf_information(ys, H, R, F=None, Q=None, x0=None, P0=None):
-    """与 core_eq.kf_filter 同接口、同返回结构。"""
+    """Same interface and return structure as core_eq.kf_filter."""
     ys = np.asarray(ys, dtype=np.float64)
     H = np.asarray(H, dtype=np.float64)
     R = np.asarray(R, dtype=np.float64)
@@ -29,22 +33,23 @@ def kf_information(ys, H, R, F=None, Q=None, x0=None, P0=None):
 
     means, covs, gains, nis = [x.copy()], [P.copy()], [], []
     for t in range(ys.shape[0]):
-        # 预测(协方差域):先用旧 Λ(后验)恢复 x_post 再外推,顺序不可换
+        # predict (covariance domain): recover x_post with the OLD Λ first —
+        # the order matters (overwrite Λ only after the extrapolation)
         P_pred = F @ np.linalg.inv(Lam) @ F.T + Q
         x_pred = F @ np.linalg.solve(Lam, eta)
         Lam = np.linalg.inv(P_pred)
         eta = Lam @ x_pred
-        # 更新(信息域直接累加)
+        # update (information domain, direct accumulation)
         Lam = Lam + Ht_Rinv_H
         y = ys[t]
         eta = eta + Ht_Rinv @ y
-        x = np.linalg.solve(Lam, eta)         # 后验均值 = Λ⁻¹η
-        P = np.linalg.inv(Lam)                # 后验协方差
-        # 辅助输出(NIS 与增益,口径与 core_eq 一致)
+        x = np.linalg.solve(Lam, eta)         # posterior mean = Λ⁻¹η
+        P = np.linalg.inv(Lam)                # posterior covariance
+        # auxiliary outputs (NIS and gain, same semantics as core_eq)
         S = H @ P_pred @ H.T + R
         nu = y - H @ x_pred
         nis.append(float(nu @ np.linalg.solve(S, nu)))
-        gains.append(np.linalg.inv(Lam) @ Ht_Rinv)   # K = Λ⁻¹HᵀR⁻¹(后验恒等式)
+        gains.append(np.linalg.inv(Lam) @ Ht_Rinv)   # K = Λ⁻¹HᵀR⁻¹ (posterior identity)
         means.append(x.copy())
         covs.append(P.copy())
     return {

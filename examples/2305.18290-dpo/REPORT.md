@@ -1,39 +1,45 @@
-# 复现报告:DPO(arXiv:2305.18290,§4 目标与损失)
+# Reproduction report: DPO (arXiv:2305.18290, §4 objective and loss)
 
-## 范围声明
+## Scope statement
 
-只复现 §4 的推导链(Eq.3–7)中的可计算件:DPO 损失(Eq.7)、Bradley–Terry
-偏好模型(Eq.6)、最优策略闭式(Eq.4)与奖励重参数化(Eq.5)。训练动态、
-偏好数据上的期望、与 PPO-RLHF 的效果对比不覆盖(见 GAP_LIST)。
+Only the computable pieces of the §4 derivation chain (Eq.3–7): the DPO loss (Eq.7),
+the Bradley–Terry preference model (Eq.6), the closed-form optimal policy (Eq.4), and
+the reward reparameterization (Eq.5). Training dynamics, the expectation over real
+preference data, and comparison against PPO-RLHF are not covered (GAP_LIST).
 
-## 结果矩阵
+## Results matrix
 
-| 测试文件 | 用例数 | 通过 | 失败 | 备注 |
+| Test file | Cases | Pass | Fail | Notes |
 |---|---|---|---|---|
-| test_properties.py | 3 | 3 | 0 | P1 log2 退化 / P2 单调 + 交换恒等式(1e-12) |
-| test_anchor.py | 3 | 3 | 0 | z∈{0, ln3, −ln3} → {log2, log(4/3), log4} 手算精确常数 |
-| test_gradients.py | 2 | 2 | 0 | 四路 log-prob 梯度 < 1e-10;参考点梯度量级 β/(2N) 精确 |
-| test_crosscheck.py | 3 | 3 | 0 | Eq.7 直写 vs BT 路径(1e-12);Eq.5 往返精确;π* 归一化 |
+| test_properties.py | 3 | 3 | 0 | P1 log2 degeneracy / P2 monotonicity + swap identity (1e-12) |
+| test_anchor.py | 3 | 3 | 0 | z∈{0, ln3, −ln3} → {log2, log(4/3), log4} as exact hand constants |
+| test_gradients.py | 2 | 2 | 0 | four-path log-prob gradients < 1e-10; reference-point gradient magnitude β/(2N) exact |
+| test_crosscheck.py | 3 | 3 | 0 | Eq.7 literal vs BT path (1e-12); Eq.5 round trip exact; π* normalization |
 
-运行:`python -m pytest examples/2305.18290-dpo/tests -q`(float64,CPU,< 1s)。
+Run: `python -m pytest examples/2305.18290-dpo/tests -q` (float64, CPU, < 1 s).
 
-## 发现
+## Findings
 
-1. **必须用 log-prob 差,不能用概率比。** 论文 Eq.(7) 写作
-   $\beta\log\frac{\pi_\theta}{\pi_{\mathrm{ref}}}$,数学上等于 log-prob 差;
-   但直接计算概率再相除会因 π 的数量级(1e-3 ~ 1e-40)引入下溢与精度损失。
-   两种写法「性质全绿」容易,数值稳定性不同 —— 这是 DPO 开源实现里
-   最常见的静默偏差来源。
-2. **$L(\pi_\theta{=}\pi_{\mathrm{ref}}) = \log 2$ 是免费的冒烟测试**,任何 DPO
-   实现先过这一关;本复现同时验证了参考点梯度量级 β/(2N) 的精确结构。
-3. **Eq.(5) 的 $\beta\log Z(x)$ 在成对差分里消去,但在逐点奖励恢复里不能丢。**
-   交叉验证中构造了反例(丢掉 logZ 项无法还原 r),确认了该项的必要性 ——
-   这解释了为什么 DPO 训练不需要配分函数、而奖励反演需要。
-4. 交换恒等式 $L(y_l,y_w) - L(y_w,y_l) = z$ 精确到 1e-12,可作为纯代数
-   (与实现无关)的自检依据。
+1. **Use log-prob differences, never probability ratios.** Eq.(7) is written as
+   $\beta\log\frac{\pi_\theta}{\pi_{\mathrm{ref}}}$ — mathematically identical to a
+   log-prob difference — but computing probabilities first and dividing loses precision
+   and can underflow (π spans 1e-3 ~ 1e-40). Both writings pass "all properties green"
+   easily; their numerical paths differ materially. This is the most common silent bias
+   in open-source DPO implementations.
+2. **$L(\pi_\theta{=}\pi_{\mathrm{ref}}) = \log 2$ is a free smoke test** for any DPO
+   implementation; this reproduction additionally pins the exact reference-point
+   gradient magnitude β/(2N).
+3. **The $\beta\log Z(x)$ of Eq.(5) cancels in pairwise differences but is required for
+   pointwise reward recovery.** The cross-check builds a counterexample (dropping logZ
+   fails to recover r), confirming the term's necessity — which explains why DPO
+   training needs no partition function while reward inversion does.
+4. The swap identity $L(y_l,y_w) - L(y_w,y_l) = z$ holds to 1e-12 and works as a purely
+   algebraic (implementation-independent) self-check.
 
-## 已知局限
+## Known limitations
 
-- 期望 $\mathbb E_{(x,y_w,y_l)}$ 未在真实偏好分布上估计(需数据集,OUT)。
-- 未涉及 $\beta$ 对 KL 偏离的实际影响(需训练)、与 IPO/KTO 变体的对比。
-- 实现假设 log-prob 可精确取得(白盒模型);API 黑盒模型的场景不适用。
+- The expectation $\mathbb E_{(x,y_w,y_l)}$ is not estimated on a real preference
+  distribution (needs a dataset, out of scope).
+- No β's empirical effect on KL deviation (needs training), no IPO/KTO comparison.
+- The implementation assumes exact log-probs are available (white-box model); black-box
+  API models are out of reach (as they are for the paper itself).

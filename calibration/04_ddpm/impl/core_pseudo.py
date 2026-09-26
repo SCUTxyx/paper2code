@@ -1,14 +1,17 @@
-"""DDPM 前向过程 —— 独立表述:逐步递推(Eq.2)与未展开加权和(推导见 METHOD_CARD)。
+"""DDPM forward process — independent formulations: step-by-step recursion (Eq.2)
+and the unrolled weighted sum (derivation in METHOD_CARD).
 
-不使用闭式系数 √ᾱ_t 直接合成,而是逐级加噪 / 对历史噪声加权求和,
-供 test_crosscheck.py 与公式版互对拍(D2 精确恒等)。
+Neither uses the closed-form √ᾱ_t coefficients directly; one noises step by step,
+the other sums weighted historical noises — both for the cross-check against the
+formula version in test_crosscheck.py (D2 exact identity).
 """
 
 import numpy as np
 
 
 def q_sample_iterative(x0, t, eps_seq, betas):
-    """Eq.(2) 逐步加噪: x_s = √(1-β_s) x_{s-1} + √β_s ε_s,用 eps_seq 前 t 个。"""
+    """Eq.(2) step-by-step noising: x_s = √(1-β_s) x_{s-1} + √β_s ε_s,
+    using the first t entries of eps_seq."""
     x = np.array(x0, dtype=np.float64)
     for s in range(1, t + 1):
         e = np.asarray(eps_seq[s - 1], dtype=np.float64)
@@ -17,7 +20,7 @@ def q_sample_iterative(x0, t, eps_seq, betas):
 
 
 def q_sample_unrolled(x0, t, eps_seq, betas):
-    """未展开恒等式: x_t = √ᾱ_t x0 + Σ_s √(ᾱ_t/ᾱ_s)·√(1-α_s)·ε_s。"""
+    """Unrolled identity: x_t = √ᾱ_t x0 + Σ_s √(ᾱ_t/ᾱ_s)·√(1-α_s)·ε_s."""
     betas = np.asarray(betas, dtype=np.float64)
     alphas = 1.0 - betas
     abar = np.cumprod(alphas)
@@ -29,7 +32,8 @@ def q_sample_unrolled(x0, t, eps_seq, betas):
 
 
 def q_sample_batch(x0, t, rng, abars, n):
-    """闭式边缘的蒙特卡洛:x0 广播到 n 条轨迹(Eq.4 采样形式,向量化)。"""
+    """Monte Carlo of the closed-form marginal: x0 broadcast over n trajectories
+    (Eq.4 sampling form, vectorized)."""
     x0 = np.asarray(x0, dtype=np.float64)
     ab = abars[t - 1]
     eps = rng.standard_normal((n, x0.shape[-1]))
@@ -37,7 +41,7 @@ def q_sample_batch(x0, t, rng, abars, n):
 
 
 def q_sample_iterative_batch(x0, t, rng, betas, n):
-    """逐步加噪的蒙特卡洛(轨迹级向量化,时间维循环)。"""
+    """Monte Carlo of step-by-step noising (trajectories vectorized, time looped)."""
     x = np.tile(np.asarray(x0, dtype=np.float64), (n, 1))
     for s in range(1, t + 1):
         eps = rng.standard_normal(x.shape)

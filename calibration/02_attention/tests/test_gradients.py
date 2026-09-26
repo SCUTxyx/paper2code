@@ -1,4 +1,5 @@
-"""Attention 梯度检查(T5):解析梯度 vs gradcheck 中心差分,rtol 1e-6。"""
+"""Attention gradient checks (T5): analytic gradients vs gradcheck central
+differences, rtol 1e-6."""
 
 import sys
 from pathlib import Path
@@ -41,11 +42,12 @@ def test_grads_q_k_v():
 
 
 def test_causal_row_grad_wrt_V():
-    """T2 梯度形态:固定第 i0 行的损失 L=w·out_i0,对 V 的解析梯度
-    在 j>i0 处精确为 0(j≤i0 处 = A[i0,j]·w),与中心差分一致。"""
+    """T2 gradient structure: for the single-row loss L = w·out_i0, the analytic
+    gradient w.r.t. V is exactly 0 for j>i0 (= A[i0,j]·w for j≤i0), matching
+    central differences — including the exact zeros."""
     Q, K, V, W = _fixture(seed=7)
     i0 = 2
-    w = W[i0]  # 行损失的权重向量 (DV,)
+    w = W[i0]  # row-loss weight vector (DV,)
     _, A = core_eq.attention(Q, K, V, causal=True)
     analytic = np.zeros((N, DV))
     for j in range(i0 + 1):

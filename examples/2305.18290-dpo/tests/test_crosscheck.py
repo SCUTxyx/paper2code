@@ -1,4 +1,5 @@
-"""DPO 双实现互对拍:Eq.(7) 直写 vs Bradley–Terry 路径;Eq.(4)(5) 往返恒等。"""
+"""DPO dual-implementation cross-check: Eq.(7) literal vs Bradley–Terry path;
+the Eq.(4)(5) round trip."""
 
 import sys
 from pathlib import Path
@@ -14,7 +15,7 @@ import core_pseudo
 
 
 def test_eq7_vs_bradley_terry():
-    """两条推导路径(Eq.7 直写 / Eq.6 先算 p 再取 −log)一致到 1e-12。"""
+    """Two derivation paths (Eq.7 literal / Eq.6 computing p first) agree to 1e-12."""
     rng = np.random.default_rng(0)
     for seed, beta in ((0, 0.1), (1, 0.5), (2, 2.0)):
         r = np.random.default_rng(seed)
@@ -26,23 +27,25 @@ def test_eq7_vs_bradley_terry():
 
 
 def test_reward_roundtrip():
-    """P3: r → π*(Eq.4) → r̂(Eq.5) 精确还原 r(验证 β·logZ 项不能丢)。"""
+    """P3: r → π* (Eq.4) → r̂ (Eq.5) recovers r exactly (the β·logZ term is
+    required)."""
     rng = np.random.default_rng(1)
     K, beta = 6, 0.2
     r = rng.uniform(-1.0, 1.0, K)
     logp_ref = rng.standard_normal(K) - 1.5
-    logp_ref = logp_ref - logp_ref.max()      # 任意未归一的 log π_ref
+    logp_ref = logp_ref - logp_ref.max()      # any unnormalized log π_ref
     pi_star, logZ = core_pseudo.optimal_policy(r, logp_ref, beta=beta)
     r_hat = core_pseudo.reward_from_policy(np.log(pi_star), logp_ref,
                                            beta=beta, logZ=logZ)
     assert np.allclose(r_hat, r, rtol=0, atol=1e-12)
-    # 反例对照:丢掉 β·logZ 项则不能还原(恒等式的组成部分是必要的)
+    # counterexample control: dropping the β·logZ term fails to recover r
+    # (the term is a necessary part of the identity)
     r_noZ = core_pseudo.reward_from_policy(np.log(pi_star), logp_ref, beta=beta, logZ=0.0)
     assert not np.allclose(r_noZ, r, atol=1e-3)
 
 
 def test_optimal_policy_normalized():
-    """P4: Σ_y π*(y|x) = 1。"""
+    """P4: Σ_y π*(y|x) = 1."""
     rng = np.random.default_rng(2)
     r = rng.uniform(-2.0, 2.0, 7)
     logp_ref = rng.standard_normal(7)

@@ -1,4 +1,5 @@
-"""Attention 性质测试(T1 行和 / T2 因果掩码 / T3 缩放方差 / T4 置换等变)。"""
+"""Attention property tests (T1 row sums / T2 causal mask / T3 scaling variance /
+T4 permutation equivariance)."""
 
 import sys
 from pathlib import Path
@@ -19,7 +20,7 @@ def _data(seed=0, n=8, d_k=6, d_v=4):
 
 
 def test_rows_sum_to_one():
-    """T1: softmax 行和 = 1,精度 1e-12。"""
+    """T1: softmax row sums = 1 at 1e-12."""
     Q, K, V = _data()
     for causal in (False, True):
         _, A = core_eq.attention(Q, K, V, causal=causal)
@@ -28,34 +29,35 @@ def test_rows_sum_to_one():
 
 
 def test_causal_mask_zero():
-    """T2: 掩码未来位置权重精确为 0;∂out_i/∂V_j = 0 对 j>i
-    (扰动 V_j 不影响任何 i<j 的输出行,精确成立)。"""
+    """T2: masked future positions have exactly-zero weights; ∂out_i/∂V_j = 0 for j>i
+    (perturbing V_j leaves every output row i<j bit-identical)."""
     Q, K, V = _data()
     out, A = core_eq.attention(Q, K, V, causal=True)
-    assert np.all(A[np.triu_indices(8, k=1)] == 0.0)  # exp(-inf)=0,精确
+    assert np.all(A[np.triu_indices(8, k=1)] == 0.0)  # exp(-inf)=0, exact
     V2 = V.copy()
-    V2[3] += 1.7  # 扰动一个「未来」值
+    V2[3] += 1.7  # perturb a "future" value
     out2, _ = core_eq.attention(Q, K, V2, causal=True)
-    assert np.all(out2[:3] == out[:3])  # 前 3 行完全不变
-    assert not np.allclose(out2[3:], out[3:])  # 自身及之后会变(性质的方向性)
+    assert np.all(out2[:3] == out[:3])  # first 3 rows unchanged exactly
+    assert not np.allclose(out2[3:], out[3:])  # self and later rows do change (direction)
 
 
 def test_scaling_variance():
-    """T3: q·k ~ N(0, d_k) → 原始 logit std ≈ √d_k,缩放后 ≈ 1。
-    容差按解析 3σ 导出:N = n² 个样本,std 估计的相对波动 ≈ 1/√(2N),放宽到 0.5。"""
+    """T3: for q·k ~ N(0, d_k), raw logit std ≈ √d_k; after 1/√d_k scaling ≈ 1.
+    Tolerance derived analytically at 3σ: N = n² samples, std-estimate relative
+    fluctuation ≈ 1/√(2N), loosened to 0.5."""
     rng = np.random.default_rng(2)
     n, d_k = 64, 64
     Q = rng.standard_normal((n, d_k))
     K = rng.standard_normal((n, d_k))
     raw = (Q @ K.T).ravel()
-    scaled = raw / np.sqrt(d_k)  # Eq.(1) 的缩放
-    assert abs(raw.std() - np.sqrt(d_k)) < 0.5, f"raw std={raw.std():.3f}, 期望≈8"
+    scaled = raw / np.sqrt(d_k)  # Eq.(1)'s scaling
+    assert abs(raw.std() - np.sqrt(d_k)) < 0.5, f"raw std={raw.std():.3f}, expected ≈8"
     assert abs(scaled.std() - 1.0) < 0.5 / np.sqrt(d_k) * np.sqrt(d_k), (
-        f"scaled std={scaled.std():.3f}, 期望≈1")
+        f"scaled std={scaled.std():.3f}, expected ≈1")
 
 
 def test_query_permutation_equivariance():
-    """T4: 无掩码时置换查询行,输出行做同样置换。"""
+    """T4: without masking, permuting query rows permutes output rows identically."""
     Q, K, V = _data(seed=3)
     rng = np.random.default_rng(4)
     perm = rng.permutation(8)

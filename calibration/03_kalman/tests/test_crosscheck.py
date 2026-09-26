@@ -1,7 +1,9 @@
-"""Kalman 双实现互对拍:标准递推(增益公式) vs 信息形式(信息累加)。
+"""Kalman dual-implementation cross-check: standard recursion (gain formula) vs
+information form (information accumulation).
 
-覆盖静态(F=I, Q=0)与动态(F≠I, Q≠0)两种情形;
-信息形式对线性高斯动态模型同样精确(Λ_t = (FΛ_{t-1}⁻¹Fᵀ+Q)⁻¹ + HᵀR⁻¹H)。
+Covers both the static (F=I, Q=0) and dynamic (F≠I, Q≠0) cases; the information
+form is exact for linear-Gaussian dynamics too
+(Λ_t = (FΛ_{t-1}⁻¹Fᵀ+Q)⁻¹ + HᵀR⁻¹H).
 """
 
 import sys
@@ -40,7 +42,7 @@ def test_static_model():
 def test_dynamic_model():
     H, ys, R, P0, x0 = _data(seed=1)
     rng = np.random.default_rng(2)
-    th = 0.7  # 旋转 + 轻微收缩的转移矩阵,过程噪声非零
+    th = 0.7  # slightly contracting rotation as the transition, nonzero process noise
     F = 0.98 * np.array([[np.cos(th), -np.sin(th), 0],
                          [np.sin(th), np.cos(th), 0],
                          [0, 0, 1.0]])

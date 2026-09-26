@@ -1,0 +1,22 @@
+[project]
+name = "paper2code"
+version = "0.1.0"
+description = "Verified paper reproduction as an agent skill: numpy minimal implementations with green property/gradient tests, method cards, and honest gap lists."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pytest>=7",
+]
+
+[tool.setuptools]
+# The repo is scripts + tests + markdown artifacts; nothing is importable as a package.
+# `pip install -e .` installs metadata/dependencies only.
+py-modules = []
+
+[tool.pytest.ini_options]
+# importlib mode allows same-named test files across repro dirs (test_gradients.py
+# etc.) — the precondition for the fixed artifact contract's file names to work.
+addopts = "--import-mode=importlib"
+testpaths = ["tests", "calibration", "examples"]

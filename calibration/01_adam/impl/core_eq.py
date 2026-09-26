@@ -1,17 +1,17 @@
-"""Adam 更新规则 —— 按论文 Algorithm 1 逐行实现(公式版)。
+"""Adam update rule — literal implementation of paper Algorithm 1 (formula version).
 
-来源: Kingma & Ba, arXiv:1412.6980, Algorithm 1(注释中的 L 行号指算法框行)。
-numpy-only, float64。
+Source: Kingma & Ba, arXiv:1412.6980, Algorithm 1 (L line numbers in comments refer
+to the algorithm box). numpy-only, float64.
 """
 
 import numpy as np
 
 
 def adam_run(grad_seq, theta0, lr=0.1, beta1=0.9, beta2=0.999, eps=1e-8):
-    """按 Algorithm 1 递推跑完整梯度序列。
+    """Run the Algorithm 1 recursion over a full gradient sequence.
 
-    grad_seq: (T, n) 梯度序列;theta0: (n,)。
-    返回 dict:thetas (T+1, n), ms/vs (T,n), m_hats/v_hats (T,n)。
+    grad_seq: (T, n) gradient sequence; theta0: (n,).
+    Returns dict: thetas (T+1, n), ms/vs (T,n), m_hats/v_hats (T,n).
     """
     g_seq = np.asarray(grad_seq, dtype=np.float64)
     theta = np.array(theta0, dtype=np.float64)

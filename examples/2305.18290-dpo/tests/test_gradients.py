@@ -1,4 +1,5 @@
-"""DPO 梯度检查(P5):四路 log-prob 的解析梯度 vs 中心差分。"""
+"""DPO gradient checks (P5): analytic gradients over the four log-prob paths vs
+central differences."""
 
 import sys
 from pathlib import Path
@@ -34,7 +35,8 @@ def test_grads_four_paths():
 
 
 def test_grad_structure_at_reference_point():
-    """π_θ = π_ref 处 σ(−z)=½:批均值损失下四路梯度量级恰为 β/(2N)。"""
+    """At π_θ = π_ref we have σ(−z)=½: under the batch-mean loss, all four
+    gradient paths have magnitude exactly β/(2N)."""
     rng = np.random.default_rng(1)
     a, b = rng.standard_normal(4), rng.standard_normal(4)
     _, g = core_eq.dpo_loss_and_grad(a, b, a, b, beta=BETA)

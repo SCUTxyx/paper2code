@@ -1,10 +1,10 @@
-"""DPO 锚点测试:σ/softplus 精确常数手算。
+"""DPO anchor tests: exact σ/softplus constants by hand.
 
-手算:L = −log σ(z) = log(1+e^{−z})。
+Hand computation: L = −log σ(z) = log(1+e^{−z}).
 - z = 0   → L = log 2 = 0.6931471805599453;
 - z = ln3 → σ(z) = 3/4 → L = log(4/3) = 0.28768207245178085;
-- z = −ln3 → L = log(1 + e^{ln3}) = log 4 = 1.3862943611198906。
-构造:β = 0.1,(logπ_w−logπ_ref,w) − (logπ_l−logπ_ref,l) = 10·ln3 ⇒ z = ln3。
+- z = −ln3 → L = log(1 + e^{ln3}) = log 4 = 1.3862943611198906.
+Construction: β = 0.1 and (logπ_w−logπ_ref,w) − (logπ_l−logπ_ref,l) = 10·ln3 ⇒ z = ln3.
 """
 
 import sys
@@ -23,7 +23,7 @@ BETA = 0.1
 
 
 def _config(z):
-    """构造四路 log-prob,使 β[(w−w_ref)−(l−l_ref)] = z。"""
+    """Build the four log-prob paths such that β[(w−w_ref)−(l−l_ref)] = z."""
     diff = z / BETA
     return (np.array([diff]), np.zeros(1), np.zeros(1), np.zeros(1))
 

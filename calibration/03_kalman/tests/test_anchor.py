@@ -1,12 +1,15 @@
-"""Kalman 锚点测试(K1 / K2):递推后验均值 vs 批量闭式解。
+"""Kalman anchor tests (K1 / K2): recursion posterior mean vs batch closed forms.
 
-K1 的真值来源 np.linalg.lstsq —— 与实现完全独立的权威路径(规划选定的校准点):
-线性高斯静态模型 + 扩散先验时,后验 = OLS + O(P0⁻¹) 的先验偏置。
+K1's truth source is np.linalg.lstsq — an authoritative path fully independent of
+the implementation (the calibration point chosen in the plan): under a static
+linear-Gaussian model with a diffuse prior, the posterior = OLS + O(P0⁻¹) prior bias.
 
-数值发现(记入 calibration/README.md):教科书协方差更新 (I-KH)P 在
-P0=1e10 时因灾难性消去产生负定协方差、均值偏离 OLS 达 1e-1;Joseph 形式
-(与教科书式在最优增益下代数恒等)在 P0=1e8 时误差 2.4e-8。故 core_eq 采用
-Joseph 形式,本锚点取 P0=1e8:先验偏置 ~1e-8/λ_min ≪ rtol,数值误差 ~2e-8。
+Numeric finding (recorded in calibration/README.md): the textbook covariance
+update (I-KH)P is catastrophically cancelled at P0=1e10 — the covariance turns
+indefinite and the mean drifts ~1e-1 from OLS. The Joseph form (algebraically
+identical at the optimal gain) gives 2.4e-8 at P0=1e8. core_eq therefore uses the
+Joseph form and this anchor takes P0=1e8: prior bias ~1e-8/λ_min ≪ rtol and the
+numerical error is ~2e-8.
 """
 
 import sys
@@ -20,7 +23,7 @@ import numpy as np
 
 import core_eq
 
-T, N, DY = 25, 3, 4  # 状态维 3,观测维 4,25 个时刻(设计矩阵满秩)
+T, N, DY = 25, 3, 4  # state dim 3, observation dim 4, 25 time steps (full-rank design)
 
 
 def _data(seed=0):
@@ -34,7 +37,7 @@ def _data(seed=0):
 def test_static_diffuse_prior_equals_lstsq():
     H, ys = _data()
     out = core_eq.kf_filter(ys, H, R=np.eye(DY), P0=1e8 * np.eye(N))
-    # 批量最小二乘:把 T 个观测堆叠成 (T·dy, n) 设计矩阵
+    # batch least squares: stack the T observations into a (T·dy, n) design matrix
     design = np.tile(H, (T, 1))
     target = ys.reshape(-1)
     x_ols, *_ = np.linalg.lstsq(design, target, rcond=None)
@@ -42,7 +45,8 @@ def test_static_diffuse_prior_equals_lstsq():
 
 
 def test_informative_prior_gls_closed_form():
-    """K2: 信息先验时后验均值 = (HᵀR⁻¹H + P0⁻¹)⁻¹(HᵀR⁻¹y + P0⁻¹x0)。"""
+    """K2: with an informative prior the posterior mean is the GLS closed form
+    (HᵀR⁻¹H + P0⁻¹)⁻¹(HᵀR⁻¹y + P0⁻¹x0)."""
     H, ys = _data(seed=1)
     P0 = 0.5 * np.eye(N)
     x0 = np.array([0.3, -0.2, 0.9])

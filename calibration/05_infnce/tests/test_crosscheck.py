@@ -1,4 +1,5 @@
-"""InfoNCE/CLIP 双实现互对拍:向量化矩阵版 vs 逐对循环版。"""
+"""InfoNCE/CLIP dual-implementation cross-check: vectorized matrix form vs
+per-pair loop form."""
 
 import sys
 from pathlib import Path
@@ -25,7 +26,8 @@ def test_vectorized_equals_loop():
 
 
 def test_directional_components_match():
-    """两方向分量(i2t 与 t2i)在两个实现间也应一致(经矩阵转置口径核对)。"""
+    """The two directional components (i2t and t2i) must also agree between the
+    implementations (matrix-transpose semantics cross-checked)."""
     r = np.random.default_rng(3)
     I = r.standard_normal((6, 5))
     T = r.standard_normal((6, 5))

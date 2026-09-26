@@ -1,17 +1,17 @@
-"""Kalman 滤波 —— 标准预测-更新递推实现(公式版)。
+"""Kalman filter — standard predict/update recursion (formula version).
 
-来源: Kalman (1960) 滤波方程组(预测 / 增益 / 更新)。
-numpy-only, float64。缺省 F=I、Q=0(静态模型)。
+Source: Kalman (1960) filter equations (predict / gain / update).
+numpy-only, float64. Defaults F=I, Q=0 (static model).
 """
 
 import numpy as np
 
 
 def kf_filter(ys, H, R, F=None, Q=None, x0=None, P0=None):
-    """标准 Kalman 递推。
+    """Standard Kalman recursion.
 
-    ys: (T, dy) 观测序列;H: (dy, n);R: (dy, dy)。
-    返回 dict:means (T+1, n)、covs (T+1, n, n)、gains (T, n, dy)、nis (T,)。
+    ys: (T, dy) observation sequence; H: (dy, n); R: (dy, dy).
+    Returns dict: means (T+1, n), covs (T+1, n, n), gains (T, n, dy), nis (T,).
     """
     ys = np.asarray(ys, dtype=np.float64)
     H = np.asarray(H, dtype=np.float64)
@@ -25,19 +25,20 @@ def kf_filter(ys, H, R, F=None, Q=None, x0=None, P0=None):
     means, covs, gains, nis = [x.copy()], [P.copy()], [], []
     Rinv = np.linalg.inv(R)
     for t in range(ys.shape[0]):
-        # 预测
+        # predict
         x = F @ x
         P = F @ P @ F.T + Q
-        # 更新
-        S = H @ P @ H.T + R                      # 新息协方差
-        K = P @ H.T @ np.linalg.inv(S)           # Kalman 增益
-        nu = ys[t] - H @ x                       # 新息
+        # update
+        S = H @ P @ H.T + R                      # innovation covariance
+        K = P @ H.T @ np.linalg.inv(S)           # Kalman gain
+        nu = ys[t] - H @ x                       # innovation
         x = x + K @ nu
-        # 协方差更新用 Joseph 形式:与教科书式 (I-KH)P 在最优增益下恒等,
-        # 但对大 P0(扩散先验)数值稳定 —— 教科书式在 P0=1e10 时因灾难性
-        # 消去产生负定协方差(本考卷 test_anchor.py 记录了该对照)。
+        # covariance update in Joseph form: algebraically identical to the textbook
+        # (I-KH)P at the optimal gain, but numerically stable for large P0 (diffuse
+        # priors) — the textbook form produces an indefinite covariance via
+        # catastrophic cancellation at P0=1e10 (documented in test_anchor.py).
         ImKH = np.eye(n) - K @ H
-        P = ImKH @ P @ ImKH.T + K @ R @ K.T      # Joseph (1968) 形式
+        P = ImKH @ P @ ImKH.T + K @ R @ K.T      # Joseph (1968) form
         means.append(x.copy())
         covs.append(P.copy())
         gains.append(K.copy())

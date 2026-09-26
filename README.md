@@ -27,12 +27,14 @@ dependencies** (numpy-only).
 ```bash
 git clone https://github.com/SCUTxyx/paper2code.git
 cd paper2code
-pip install numpy pytest        # skip if already available
-python -m pytest -q             # 76 tests: calibration 5/5 + two example repros + tooling
+pip install -e .                # installs numpy + pytest (skip if already available)
+python -m pytest -q             # 88 tests: calibration 5/5 + three example repros + tooling
 ```
 
-To install as an agent skill, drop `SKILL.md` into your skill directory (e.g.
-`~/.zcode/skills/paper2code/SKILL.md`), then ask your agent:
+To install as an agent skill, run `bash scripts/install_skill.sh` — it auto-detects your
+agent's skill directory (`~/.zcode/skills`, `~/.claude/skills`, …), symlinks `SKILL.md`
+plus the references/scripts/calibration folders in, and supports `--list`, `--copy`,
+`--dir PATH`, and `--remove`. Then ask your agent:
 "**reproduce this paper: \<arXiv link\>**".
 
 ### Do I need a GPU? An API key?
@@ -94,6 +96,13 @@ Every reproduction has a fixed seven-file contract:
   Findings: use log-prob differences, never probability ratios (numerical stability); the
   β·logZ term in Eq.(5) cancels in pairwise differences but is *required* for pointwise
   reward recovery (verified by a counterexample).
+- **[FlashAttention tiled softmax](examples/2205.14135-flashattention/)** (arXiv:2205.14135) — 12 tests green.
+  Finding: our first "normalized-at-every-step" transliteration of Algorithm 1 rescaled the
+  accumulator by e^{Δm} but forgot the l_old factor — mixing a normalized quantity with an
+  unnormalized one. The F1 exactness test (tiled == direct, 1e-12) caught it immediately.
+  A self-consistent error class that shape checks and soft property tests would have passed.
+  Gap #1-2: the paper's headline IO-complexity and speedup claims are systems-level and
+  honestly untestable on CPU → GAP_LIST.
 
 ## Cost
 
@@ -109,12 +118,13 @@ Every reproduction has a fixed seven-file contract:
 ```
 SKILL.md              # the skill itself (six-stage pipeline + hard constraints)
 references/           # verification ladder details, numeric specs, artifact templates
-scripts/              # gradcheck.py (shared finite-difference checker), regression scripts
+scripts/              # gradcheck.py (shared checker), regression + skill-install scripts
 tests/                # self-tests for gradcheck.py (verify the verifier)
 calibration/          # 5 exams (they double as living templates of the artifact contract)
-examples/             # real-paper trial runs (RoPE, DPO)
+examples/             # real-paper trial runs (RoPE, DPO, FlashAttention)
 repros/               # local run area for users (.gitignored)
 CALIBRATION_LOG.md    # calibration regression log
+pyproject.toml        # single source of config: dependencies + pytest settings
 PLAN.md               # project plan (overview/contract/methodology/verification/milestones/...)
 ```
 

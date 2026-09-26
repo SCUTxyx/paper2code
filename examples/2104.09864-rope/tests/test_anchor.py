@@ -1,10 +1,11 @@
-"""RoPE 锚点测试:d=2 手例,标准三角常数可手算。
+"""RoPE anchor tests: d=2 hand cases with standard trigonometric constants.
 
-手算:d=2 时 Eq.(15) 只有一个频率 θ_1 = 10000^0 = 1(每步旋转 1 弧度)。
+Hand computation: with d=2, Eq.(15) has a single frequency θ_1 = 10000^0 = 1
+(one radian per step).
 1) f([1,0], 3) = [cos3, sin3] = [-0.9899924966004454, 0.1411200080598672];
-2) 打分:⟨f(q,3), f(k,1)⟩ = qᵀR^{n-m}k = qᵀR^{-2}k;q=[1,0], k=[0,1]:
-   R^{-2}k = [sin2, cos2] → 打分 = sin(2) = 0.9092974268256817。
-   (复数表述复核:Re[q·k̄·e^{i(m-n)θ}] = Re[-i·e^{2i}] = sin2 ✓)
+2) score: ⟨f(q,3), f(k,1)⟩ = qᵀR^{n-m}k = qᵀR^{-2}k; q=[1,0], k=[0,1]:
+   R^{-2}k = [sin2, cos2] → score = sin(2) = 0.9092974268256817.
+   (complex-form check: Re[q·k̄·e^{i(m-n)θ}] = Re[-i·e^{2i}] = sin2 ✓)
 """
 
 import sys
@@ -20,7 +21,7 @@ import core_eq
 
 
 def test_single_frequency_theta():
-    """d=2 时唯一的 θ = 1(Eq.15 的 i=1 项)。"""
+    """With d=2 the only θ equals 1 (the i=1 term of Eq.15)."""
     assert np.allclose(core_eq.theta_seq(2), [1.0], rtol=0, atol=0)
 
 
@@ -38,7 +39,8 @@ def test_score_equals_sin2():
 
 
 def test_multi_frequency_anchor():
-    """d=4,两个频率 θ = [1, 10000^{-1/2}](Eq.15 i=1,2),m=5,手算旋转角 5θ。"""
+    """d=4, two frequencies θ = [1, 10000^{-1/2}] (Eq.15 i=1,2), m=5 — the
+    rotation angle is 5θ, hand-checkable per block."""
     thetas = core_eq.theta_seq(4)
     assert np.allclose(thetas, [1.0, 10000.0 ** (-0.5)], rtol=1e-15)
     x = np.array([1.0, 0.0, 0.0, 1.0])

@@ -1,4 +1,4 @@
-"""Kalman 性质测试(K3 协方差收缩 / K5 NIS 一致性)。"""
+"""Kalman property tests (K3 covariance shrinkage / K5 NIS consistency)."""
 
 import sys
 from pathlib import Path
@@ -13,20 +13,21 @@ import core_eq
 
 
 def test_covariance_shrinks():
-    """K3: 静态模型下 P_t = (P_{t-1}⁻¹ + HᵀR⁻¹H)⁻¹ ⪯ P_{t-1}
-    → trace 单调不增(逐差 ≤ 1e-12)。"""
+    """K3: for the static model P_t = (P_{t-1}⁻¹ + HᵀR⁻¹H)⁻¹ ⪯ P_{t-1}
+    → trace is monotonically non-increasing (per-step diff ≤ 1e-12)."""
     rng = np.random.default_rng(0)
     H = rng.standard_normal((4, 3))
     ys = rng.standard_normal((15, 4))
     out = core_eq.kf_filter(ys, H, R=np.eye(4), P0=np.eye(3))
     tr = np.trace(out["covs"], axis1=1, axis2=2)
-    assert np.all(np.diff(tr) <= 1e-12), f"trace 非单调: {tr}"
+    assert np.all(np.diff(tr) <= 1e-12), f"trace not monotone: {tr}"
 
 
 def test_nis_consistency():
-    """K5: 模型正确设定时 E[NIS] = d_y = 2。
-    NIS ~ χ²(2),Var = 4;样本 = 试验数×步数,均值标准误 ≈ √(4/样本数),
-    15% 容差 = 0.3 远大于标准误,统计上极显著地应当通过。"""
+    """K5: under a correctly specified model, E[NIS] = d_y = 2.
+    NIS ~ χ²(2), Var = 4; the standard error of the mean over samples is
+    ≈ √(4/samples), so the 15% tolerance (0.3) is far above it — the test must
+    pass with high statistical significance if the implementation is right."""
     rng = np.random.default_rng(1)
     dy, n, steps, trials = 2, 2, 15, 1500
     H = rng.standard_normal((dy, n))
@@ -38,4 +39,4 @@ def test_nis_consistency():
         nis_sum += out["nis"].sum()
         count += steps
     mean_nis = nis_sum / count
-    assert abs(mean_nis - dy) < 0.15 * dy, f"mean NIS = {mean_nis:.4f}, 期望 {dy}"
+    assert abs(mean_nis - dy) < 0.15 * dy, f"mean NIS = {mean_nis:.4f}, expected {dy}"

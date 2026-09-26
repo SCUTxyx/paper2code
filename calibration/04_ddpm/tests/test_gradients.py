@@ -1,4 +1,5 @@
-"""DDPM 梯度检查(D4):闭式 / 未展开式对各输入的解析梯度 vs 中心差分。"""
+"""DDPM gradient checks (D4): analytic gradients of the closed-form / unrolled
+forms w.r.t. their inputs vs central differences."""
 
 import sys
 from pathlib import Path
@@ -18,7 +19,8 @@ T, D, T_T = 1000, 4, 233
 
 
 def test_grad_wrt_x0_and_eps():
-    """D4: ∂x_t/∂x0 = √ᾱ_t I,∂x_t/∂ε = √(1-ᾱ_t) I(Eq.4 线性重参数化)。"""
+    """D4: ∂x_t/∂x0 = √ᾱ_t·I and ∂x_t/∂ε = √(1-ᾱ_t)·I (Eq.4's linear
+    reparameterization)."""
     betas = core_eq.linear_beta_schedule(T)
     abars = core_eq.alpha_bar_seq(betas)
     rng = np.random.default_rng(0)
@@ -37,7 +39,8 @@ def test_grad_wrt_x0_and_eps():
 
 
 def test_grad_unrolled_wrt_eps_s():
-    """未展开恒等式对 ε_s 的梯度 = √(ᾱ_t/ᾱ_s)·√(1-α_s)·I(逐 s 检查)。"""
+    """The unrolled identity's gradient w.r.t. ε_s = √(ᾱ_t/ᾱ_s)·√(1-α_s)·I,
+    checked for every s."""
     betas = core_eq.linear_beta_schedule(T)
     alphas = 1.0 - betas
     abars = core_eq.alpha_bar_seq(betas)

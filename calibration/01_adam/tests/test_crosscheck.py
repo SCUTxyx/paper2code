@@ -1,4 +1,5 @@
-"""Adam 双实现互对拍:递推版(Algorithm 1 直译) vs 历史展开和版(独立表述)。"""
+"""Adam dual-implementation cross-check: recursion (Algorithm 1 transliteration)
+vs history-unrolled weighted sums (independent formulation)."""
 
 import sys
 from pathlib import Path

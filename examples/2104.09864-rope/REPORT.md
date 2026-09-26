@@ -1,35 +1,42 @@
-# 复现报告:RoPE(arXiv:2104.09864,§3.2 旋转位置编码)
+# Reproduction report: RoPE (arXiv:2104.09864, §3.2 rotary position embedding)
 
-## 范围声明
+## Scope statement
 
-只复现 §3.2 的旋转位置编码数学件(公式 + 两种等价表述);RoFormer 整体架构、
-长文本外推实验、衰减上界的渐近证明不覆盖(见 GAP_LIST)。
+Only the §3.2 rotary position embedding math piece (formulas + two equivalent
+formulations). The overall RoFormer architecture, long-context extrapolation
+experiments, and the decay upper bound's asymptotic proof are not covered (GAP_LIST).
 
-## 结果矩阵
+## Results matrix
 
-| 测试文件 | 用例数 | 通过 | 失败 | 备注 |
+| Test file | Cases | Pass | Fail | Notes |
 |---|---|---|---|---|
-| test_properties.py | 4 | 4 | 0 | R1 正交 / R2 相对位置不变 / R4 复合律 / m=0 恒等 |
-| test_anchor.py | 4 | 4 | 0 | θ 序列、d=2 手例 [cos3, sin3]、打分 = sin2、d=4 双频 |
-| test_gradients.py | 3 | 3 | 0 | 梯度最大相对误差 < 1e-10(rotate / score / 矩阵路径) |
-| test_crosscheck.py | 2 | 2 | 0 | 切片 vs 显式矩阵 vs 复数,1e-12 一致(d=2..16, m∈{0,1,7,128,−5}) |
+| test_properties.py | 4 | 4 | 0 | R1 orthogonality / R2 relative-position invariance / R4 composition / m=0 identity |
+| test_anchor.py | 4 | 4 | 0 | θ sequence, d=2 hand case [cos3, sin3], score = sin2, d=4 dual-frequency |
+| test_gradients.py | 3 | 3 | 0 | max gradient rel error < 1e-10 (rotate / score / matrix path) |
+| test_crosscheck.py | 2 | 2 | 0 | slicing vs explicit matrix vs complex form, 1e-12 (d=2..16, m∈{0,1,7,128,−5}) |
 
-运行:`python -m pytest examples/2104.09864-rope/tests -q`(float64,CPU,< 1s)。
+Run: `python -m pytest examples/2104.09864-rope/tests -q` (float64, CPU, < 1 s).
 
-## 发现
+## Findings
 
-1. **off-by-one 是真实实现的首要风险点。** 论文 Eq.(15) 写作
-   $\theta_i = 10000^{-2(i-1)/d}$、$i = 1,\dots,d/2$(1-based);主流开源实现用
-   0-based `inv_freq = base^(-2i/d)`。两者一致,但把维度算成 `2(i+1)/d` 或在
-   块配对时错开一位,性质测试(相对位置不变性)仍可能全绿 —— 只有 EQ_MAP
-   人工复核能兜住这类「错得自洽」。本复现中两种下标约定都写明并做了对拍。
-2. **三种表述在 1e-12 精度内互证**:按块切片、显式块对角矩阵、复数乘法
-   (§3.2.1 ↔ §3.2.2 的等价性得到逐位确认)。
-3. **位置可外推到任意整数**(含负数),因为旋转群结构 $R^mR^n = R^{m+n}$
-   只依赖整数加法;但这不构成对长上下文泛化性能的声明(那是实验层面)。
+1. **Off-by-one in the θ indexing is the top real-implementation risk.** The paper's
+   Eq.(15) is 1-based ($\theta_i = 10000^{-2(i-1)/d}$, $i = 1..d/2$); mainstream open-source
+   code uses 0-based `inv_freq = base^(-2i/d)`. The two agree — but shifting a dimension by
+   one or mispairing blocks yields a *self-consistent* implementation whose property tests
+   (relative-position invariance) still pass. Only the EQ_MAP human review catches that
+   class. Both index conventions are written down here and cross-checked.
+2. **Three formulations agree at 1e-12**: block slicing, explicit block-diagonal matrix,
+   and complex multiplication — the paper's §3.2.1 ↔ §3.2.2 equivalence confirmed
+   bit-for-bit.
+3. **Positions extend to any integer (including negative)** because the group structure
+   $R^mR^n = R^{m+n}$ relies only on integer addition; this does NOT constitute a claim
+   about long-context generalization (that is an empirical matter).
 
-## 已知局限
+## Known limitations
 
-- 只验证了数学件;「衰减上界」类渐近声明与模型效果完全未验证(GAP_LIST)。
-- 实现为 float64 + 偶数维假设;d 为奇数、半精度(fp16/bf16)下的数值行为未测。
-- 未覆盖后续变体(NTK-aware 缩放、YaRN 等改基底/改频率的方法)。
+- Only the math piece is verified; decay-style asymptotic claims and model quality are
+  entirely unverified (GAP_LIST).
+- float64 and an even-dimension assumption; odd $d$ and half precision (fp16/bf16)
+  behavior untested.
+- Later variants (NTK-aware scaling, YaRN, etc.) not covered — only the original
+  Eq.(15) with base 10000.

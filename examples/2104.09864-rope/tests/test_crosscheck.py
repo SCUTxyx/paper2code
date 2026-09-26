@@ -1,4 +1,5 @@
-"""RoPE 双实现互对拍(R3):按块切片 vs 显式矩阵 vs 复数形式。"""
+"""RoPE dual-implementation cross-check (R3): block slicing vs explicit matrix vs
+complex multiplication."""
 
 import sys
 from pathlib import Path
@@ -14,7 +15,8 @@ import core_pseudo
 
 
 def test_slice_vs_matrix_vs_complex():
-    """三条独立计算路径对同一 (x, m) 给出相同结果(1e-12)。"""
+    """Three independent computation paths give the same result for the same
+    (x, m) at 1e-12."""
     rng = np.random.default_rng(0)
     for d in (2, 4, 8, 16):
         x = rng.standard_normal(d)
@@ -27,9 +29,10 @@ def test_slice_vs_matrix_vs_complex():
 
 
 def test_batched_rotate_matches_matrix():
-    """批量(序列维)形式:core_eq 支持 (..., d) 广播,应与逐向量一致。"""
+    """Batched (sequence) form: core_eq supports (..., d) broadcasting and must
+    match the per-vector path."""
     rng = np.random.default_rng(1)
-    xs = rng.standard_normal((6, 8))       # 6 个 token
+    xs = rng.standard_normal((6, 8))       # 6 tokens
     ms = np.array([0, 1, 2, 3, 4, 5])
     batch = core_eq.rope_rotate(xs[:, None, :], ms[:, None, None]).squeeze(1)
     for i in range(6):
